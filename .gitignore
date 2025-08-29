@@ -111,7 +111,7 @@ next-env.d.ts
 # .idea/modules
 # *.iml
 # *.ipr
-
+keys/
 # CMake
 cmake-build-*/
 
