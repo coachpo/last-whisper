@@ -38,7 +38,7 @@ services:
       context: ./last-whisper-frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=https://lw.687786.xyz
+        - NEXT_PUBLIC_API_URL=https://lw-api.687786.xyz
     container_name: last-whisper-frontend
     ports:
       - "3000:3000"
