@@ -1,0 +1,38 @@
+lw.687786.xyz {
+    # Frontend - serve static files and handle client-side routing
+    handle /* {
+        reverse_proxy frontend:3000
+    }
+    
+    # Backend API - proxy /apis/* requests to backend
+    handle /apis/* {
+        uri strip_prefix /apis
+        reverse_proxy backend:8008
+    }
+    
+    # Health check endpoint
+    handle /health {
+        reverse_proxy backend:8008
+    }
+    
+    # Enable compression
+    encode gzip
+    
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        # Prevent clickjacking
+        X-Frame-Options "SAMEORIGIN"
+        # XSS protection
+        X-Content-Type-Options "nosniff"
+        # Referrer policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}

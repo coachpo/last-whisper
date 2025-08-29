@@ -1,17 +1,34 @@
 services:
+  # Caddy reverse proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: last-whisper-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
   # Backend API service
   backend:
     build:
       context: ./last-whisper-backend
       dockerfile: Dockerfile
     container_name: last-whisper-backend
-    ports:
-      - "8008:8008"
+    expose:
+      - "8008"
     environment:
       - ENVIRONMENT=production
       - TTS_PROVIDER=local
       - LOG_LEVEL=info
-      - CORS_ORIGINS=https://lw.687786.xyz,http://localhost:3000,http://127.0.0.1:3000
+      - CORS_ORIGINS=https://lw.687786.xyz
       - HF_HOME=/app/.cache/huggingface
       - TTS_PROVIDER=google
       - GOOGLE_APPLICATION_CREDENTIALS=/app/keys/google-credentials.json
@@ -38,10 +55,10 @@ services:
       context: ./last-whisper-frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=https://lw-api.687786.xyz
+        - NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
     container_name: last-whisper-frontend
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       backend:
         condition: service_healthy
@@ -54,4 +71,10 @@ volumes:
   database_data:
     driver: local
   audio_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+  caddy_logs:
     driver: local
