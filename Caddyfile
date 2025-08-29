@@ -1,4 +1,4 @@
-http://localhost:8008 {
+http://192.168.31.177:8008 {
     # Frontend - serve static files and handle client-side routing
     handle /* {
         reverse_proxy frontend:3000
