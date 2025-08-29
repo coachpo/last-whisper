@@ -1,10 +1,5 @@
-http://192.168.31.177:8008 {
-    # Frontend - serve static files and handle client-side routing
-    handle /* {
-        reverse_proxy frontend:3000
-    }
-    
-    # Backend API - proxy /apis/* requests to backend
+https://lw.687786.xyz {
+    # Backend API - proxy /apis/* requests to backend (must come first)
     handle /apis/* {
         uri strip_prefix /apis
         reverse_proxy backend:8000
@@ -13,6 +8,11 @@ http://192.168.31.177:8008 {
     # Health check endpoint
     handle /health {
         reverse_proxy backend:8000
+    }
+    
+    # Frontend - serve static files and handle client-side routing (catch-all)
+    handle /* {
+        reverse_proxy frontend:3000
     }
     
     # Enable compression
