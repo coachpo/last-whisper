@@ -1,0 +1,55 @@
+services:
+  # Backend API service
+  backend:
+    build:
+      context: ./last-whisper-backend
+      dockerfile: Dockerfile
+    container_name: last-whisper-backend
+    ports:
+      - "8008:8008"
+    environment:
+      - ENVIRONMENT=production
+      - TTS_PROVIDER=local
+      - LOG_LEVEL=info
+      - CORS_ORIGINS=http://192.168.31.177:3000,http://localhost:3000,http://127.0.0.1:3000
+      - HF_HOME=/app/.cache/huggingface
+    volumes:
+      # Persist audio files (use named volume for better reliability)
+      - audio_data:/app/audio
+      # Persist database (use named volume for better reliability)
+      - database_data:/app/data
+      # Mount credentials if needed
+      - ./last-whisper-backend/keys:/app/keys:ro
+      # Cache directory for models
+      - huggingface_cache:/app/.cache/huggingface
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./last-whisper-frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://192.168.31.177:8008
+    container_name: last-whisper-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+# Named volumes for persistent data
+volumes:
+  huggingface_cache:
+    driver: local
+  database_data:
+    driver: local
+  audio_data:
+    driver: local
