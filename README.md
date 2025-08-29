@@ -27,7 +27,7 @@ git clone <repository-url>
 cd last-whisper
 ```
 
-2. Pull Git submodules (if any):
+2. Pull Git submodules:
 ```bash
 git submodule update --init --recursive
 ```
