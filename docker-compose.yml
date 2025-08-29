@@ -4,8 +4,7 @@ services:
     image: caddy:2-alpine
     container_name: last-whisper-caddy
     ports:
-      - "80:80"
-      - "443:443"
+      - "8008:8008"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -23,7 +22,7 @@ services:
       dockerfile: Dockerfile
     container_name: last-whisper-backend
     expose:
-      - "8008"
+      - "8000"
     environment:
       - ENVIRONMENT=production
       - TTS_PROVIDER=local
@@ -43,7 +42,7 @@ services:
       - huggingface_cache:/app/.cache/huggingface
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
