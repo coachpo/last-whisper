@@ -27,12 +27,17 @@ git clone <repository-url>
 cd last-whisper
 ```
 
-2. Start the full stack:
+2. Pull Git submodules (if any):
+```bash
+git submodule update --init --recursive
+```
+
+3. Start the full stack:
 ```bash
 docker-compose up
 ```
 
-3. Access the application:
+4. Access the application:
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
