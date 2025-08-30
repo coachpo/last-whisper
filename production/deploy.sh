@@ -61,15 +61,15 @@ fi
 
 # Pull latest images
 print_status "Pulling latest images..."
-docker-compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml pull
 
 # Stop existing containers
 print_status "Stopping existing containers..."
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 
 # Start services
 print_status "Starting services..."
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 
 # Wait for services to be ready
 print_status "Waiting for services to be ready..."
@@ -77,15 +77,15 @@ sleep 10
 
 # Check service health
 print_status "Checking service health..."
-if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+if docker compose -f docker-compose.prod.yml ps | grep -q "Up"; then
     print_status "✅ Deployment successful!"
     print_status "Application is running at: http://localhost:8008"
 else
     print_error "❌ Some services failed to start. Check logs with:"
-    print_error "docker-compose -f docker-compose.prod.yml logs"
+    print_error "docker compose -f docker-compose.prod.yml logs"
     exit 1
 fi
 
 # Show running containers
 print_status "Running containers:"
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
