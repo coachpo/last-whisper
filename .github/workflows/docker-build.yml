@@ -1,23 +1,8 @@
 name: Last Whisper CI/CD Pipeline
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'last-whisper-backend/**'
-      - 'last-whisper-frontend/**'
-      - 'last-whisper-backend/Dockerfile'
-      - 'last-whisper-frontend/Dockerfile'
-      - 'docker-compose.yml'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'last-whisper-backend/**'
-      - 'last-whisper-frontend/**'
-      - 'last-whisper-backend/Dockerfile'
-      - 'last-whisper-frontend/Dockerfile'
-      - 'docker-compose.yml'
-  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io

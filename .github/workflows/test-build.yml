@@ -3,12 +3,6 @@ name: Last Whisper Test Pipeline
 on:
   pull_request:
     branches: [ main ]
-    paths:
-      - 'last-whisper-backend/**'
-      - 'last-whisper-frontend/**'
-      - 'last-whisper-backend/Dockerfile'
-      - 'last-whisper-frontend/Dockerfile'
-  workflow_dispatch:
 
 jobs:
   test-build:
