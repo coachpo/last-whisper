@@ -48,6 +48,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -67,8 +69,8 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Build and push Docker image (multi-arch manifest)
+        uses: docker/build-push-action@v6
         with:
           context: ./last-whisper-${{ matrix.service }}
           file: ./last-whisper-${{ matrix.service }}/Dockerfile
@@ -78,11 +80,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+          # Temporarily disable provenance/SBOM if your registry UI shows "unknown/unknown".
+          # Re-enable once you've confirmed things look good.
+          provenance: false
+          sbom: false
           build-args: ${{ matrix.service == 'frontend' && 'NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
             NEXT_PUBLIC_DEBUG_LOGGING=false
             NODE_ENV=production
             PORT=3000
             HOSTNAME=0.0.0.0' || '' }}
+
+      - name: Inspect pushed manifest
+        run: |
+          REF="${{ env.REGISTRY }}/${{ matrix.service == 'backend' && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:latest"
+          echo "Inspecting $REF"
+          docker buildx imagetools inspect "$REF"
 
   security-scan:
     runs-on: ubuntu-latest
