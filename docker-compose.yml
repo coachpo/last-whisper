@@ -43,7 +43,8 @@ services:
       context: ./last-whisper-frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=http://localhost:8008/apis
+#        - NEXT_PUBLIC_API_URL=http://localhost:8008/apis # For local testing
+        - NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis # For production
         - NEXT_PUBLIC_DEBUG_LOGGING=false
         - NODE_ENV=production
         - PORT=3000
