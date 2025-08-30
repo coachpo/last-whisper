@@ -1,4 +1,4 @@
-name: Last Whisper Test Pipeline
+name: Test Pipeline
 
 on:
   pull_request:
