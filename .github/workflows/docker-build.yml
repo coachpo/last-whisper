@@ -115,11 +115,21 @@ jobs:
             DELETE_BASE="/user/packages/container/${PACKAGE_NAME}/versions"
           fi
 
+          # Check if package exists first
+          if ! gh api "${LIST_PATH}" >/dev/null 2>&1; then
+            echo "Package ${PACKAGE_NAME} does not exist yet. No cleanup needed."
+            exit 0
+          fi
+
           # List all versions across pages, newest first; drop the newest; output IDs
           VERSIONS=$(gh api --paginate \
               -H "Accept: application/vnd.github+json" \
-              "${LIST_PATH}" | jq -r '
-                sort_by(.created_at) | reverse | .[1:] | .[].id
+              "${LIST_PATH}" 2>/dev/null | jq -r '
+                if type == "array" and length > 0 then
+                  sort_by(.created_at) | reverse | .[1:] | .[].id
+                else
+                  empty
+                end
               ')
 
           if [ -z "${VERSIONS}" ]; then
