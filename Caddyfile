@@ -1,4 +1,4 @@
-http://localhost:8008 {
+:8008 {
     # Backend API - proxy /apis/* requests to backend (must come first)
     handle /apis/* {
         uri strip_prefix /apis
