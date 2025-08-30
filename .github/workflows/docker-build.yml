@@ -77,27 +77,6 @@ jobs:
           echo "Inspecting $REF"
           docker buildx imagetools inspect "$REF"
 
-      - name: Send success notification via Bark
-        if: success()
-        run: |
-          curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/🐳%20Docker%20Build%20Success/✅%20${{ matrix.service }}%20image%20built%20and%20pushed%20successfully%20to%20${{ env.REGISTRY }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "sound": "birdsong",
-              "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
-              "group": "LastWhisper"
-            }'
-
-      - name: Send failure notification via Bark
-        if: failure()
-        run: |
-          curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/🐳%20Docker%20Build%20Failed/❌%20${{ matrix.service }}%20image%20build%20failed.%20Check%20the%20workflow%20logs%20for%20details." \
-            -H "Content-Type: application/json" \
-            -d '{
-              "sound": "shake",
-              "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
-              "group": "LastWhisper"
-            }'
 
   notify-completion:
     runs-on: ubuntu-latest
