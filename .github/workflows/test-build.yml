@@ -29,7 +29,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./last-whisper-${{ matrix.service }}
-        file: ./last-whisper-${{ matrix.service }}/Dockerfile
+        file: Dockerfile
         push: false
         tags: test-${{ matrix.service }}:latest
         cache-from: type=gha
