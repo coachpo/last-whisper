@@ -39,6 +39,7 @@ jobs:
         tags: test-${{ matrix.service }}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        platforms: linux/arm64
         build-args: ${{ matrix.service == 'frontend' && 'NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
           NEXT_PUBLIC_DEBUG_LOGGING=false
           NODE_ENV=production
