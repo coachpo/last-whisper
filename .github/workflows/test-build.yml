@@ -23,7 +23,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive   # Fetch submodules recursively
-        fetch-depth: 0          # (optional) Fetch all history for submodules too
+        fetch-depth: 1          # only fetches the latest commit (shallow clone).
         token: ${{ secrets.PAT_TOKEN }}
 
     - name: Debug directory structure
@@ -52,7 +52,6 @@ jobs:
         tags: test-${{ matrix.service }}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        platforms: linux/amd64
         build-args: ${{ matrix.service == 'frontend' && 'NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
           NEXT_PUBLIC_DEBUG_LOGGING=false
           NODE_ENV=production
