@@ -23,11 +23,11 @@ A comprehensive dictation training platform with Text-to-Speech (TTS) capabiliti
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/coachpo/last-whisper.git
 cd last-whisper
 ```
 
-2. Pull Git submodules:
+2. Pull Git submodules (backend and frontend are separate repositories):
 ```bash
 git submodule update --init --recursive
 ```
@@ -41,6 +41,23 @@ docker-compose up
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
+
+### Production Deployment with GitHub Container Registry
+
+For production deployments using pre-built images from GitHub Container Registry:
+
+1. Set up environment variables:
+```bash
+cp env.template .env
+# Edit .env with your configuration
+```
+
+2. Deploy using the deployment script:
+```bash
+./deploy.sh
+```
+
+See [GitHub CI/CD Documentation](docs/GITHUB_CI_CD.md) for detailed setup instructions.
 
 ### Local Development
 
@@ -65,7 +82,7 @@ pnpm run dev
 ```
 last-whisper/
 ├── docs/                   # Project documentation
-├── last-whisper-backend/   # FastAPI backend service
+├── last-whisper-backend/   # FastAPI backend service (git submodule)
 │   ├── app/               # Backend application code
 │   ├── audio/             # Generated audio files
 │   ├── keys/              # API keys and credentials
@@ -74,7 +91,7 @@ last-whisper/
 │   ├── run_api.py         # Server startup script
 │   ├── dictation.db       # SQLite database
 │   └── README.md          # Backend quick start guide
-├── last-whisper-frontend/  # Next.js frontend application
+├── last-whisper-frontend/  # Next.js frontend application (git submodule)
 │   ├── src/               # Frontend source code
 │   ├── public/            # Static assets
 │   ├── scripts/           # Build and utility scripts
@@ -82,13 +99,20 @@ last-whisper/
 │   ├── package.json       # Node.js dependencies
 │   ├── install.sh         # Quick setup script
 │   └── README.md          # Frontend quick start guide
-├── docker-compose.yml     # Full stack deployment
+├── docker-compose.yml     # Development deployment
+├── docker-compose.prod.yml # Production deployment with registry images
+├── deploy.sh              # Production deployment script
+├── env.template           # Environment variables template
 └── README.md              # This file
 ```
 
 ## Documentation
 
 For comprehensive documentation including API reference, architecture details, and deployment guides, see the [project documentation](docs/README.md).
+
+### CI/CD and Deployment
+
+- [GitHub CI/CD Setup](docs/GITHUB_CI_CD.md) - Complete guide for setting up automated builds and deployments
 
 ## Technology Stack
 
