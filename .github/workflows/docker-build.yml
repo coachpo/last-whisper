@@ -89,6 +89,11 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
+        build-args: ${{ matrix.service == 'frontend' && 'NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
+          NEXT_PUBLIC_DEBUG_LOGGING=false
+          NODE_ENV=production
+          PORT=3000
+          HOSTNAME=0.0.0.0' || '' }}
 
   security-scan:
     runs-on: ubuntu-latest
