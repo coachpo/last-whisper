@@ -27,6 +27,8 @@ jobs:
     - name: Checkout submodules
       run: |
         git config --global --add safe.directory /home/runner/work/last-whisper/last-whisper
+        # Configure git to use the PAT token for authentication
+        git config --global url."https://${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
         git submodule sync --recursive
         git submodule update --init --recursive --force
         git submodule foreach --recursive git checkout main
