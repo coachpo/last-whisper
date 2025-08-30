@@ -77,10 +77,31 @@ jobs:
           echo "Inspecting $REF"
           docker buildx imagetools inspect "$REF"
 
+      - name: Send success notification via Bark
+        if: success()
+        run: |
+          curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/Docker%20Build%20Success/${{ matrix.service }}%20image%20built%20and%20pushed%20successfully%20to%20${{ env.REGISTRY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "sound": "birdsong",
+              "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+              "group": "LastWhisper"
+            }'
+
+      - name: Send failure notification via Bark
+        if: failure()
+        run: |
+          curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/Docker%20Build%20Failed/${{ matrix.service }}%20image%20build%20failed.%20Check%20the%20workflow%20logs%20for%20details." \
+            -H "Content-Type: application/json" \
+            -d '{
+              "sound": "shake",
+              "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+              "group": "LastWhisper"
+            }'
+
   security-scan:
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: read
@@ -103,3 +124,49 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
+
+      - name: Send security scan notification via Bark
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/Security%20Scan%20Complete/Security%20scan%20completed%20for%20${{ matrix.service }}.%20Results%20uploaded%20to%20GitHub%20Security%20tab." \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "birdsong",
+                "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+                "group": "LastWhisper"
+              }'
+          else
+            curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/Security%20Scan%20Failed/Security%20scan%20failed%20for%20${{ matrix.service }}.%20Check%20the%20workflow%20logs%20for%20details." \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "shake",
+                "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+                "group": "LastWhisper"
+              }'
+          fi
+
+  notify-completion:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, security-scan]
+    if: always()
+    steps:
+      - name: Send workflow completion notification via Bark
+        run: |
+          if [ "${{ needs.build-and-push.result }}" == "success" ] && [ "${{ needs.security-scan.result }}" == "success" ]; then
+            curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/CI%20CD%20Pipeline%20Complete/CI%20CD%20pipeline%20completed%20successfully!%20All%20Docker%20images%20built,%20pushed,%20and%20security%20scanned." \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "birdsong",
+                "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+                "group": "LastWhisper"
+              }'
+          else
+            curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/CI%20CD%20Pipeline%20Failed/CI%20CD%20pipeline%20failed.%20Build:%20${{ needs.build-and-push.result }},%20Security:%20${{ needs.security-scan.result }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "shake",
+                "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+                "group": "LastWhisper"
+              }'
+          fi
