@@ -93,6 +93,19 @@ jobs:
           echo "Inspecting $REF"
           docker buildx imagetools inspect "$REF"
 
+      - name: Make package private
+        run: |
+          PACKAGE_NAME="${{ matrix.service == 'backend' && 'last-whisper-backend' || 'last-whisper-frontend' }}"
+          echo "Making package $PACKAGE_NAME private"
+          gh api \
+            --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /user/packages/container/$PACKAGE_NAME \
+            -f visibility=private
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   security-scan:
     runs-on: ubuntu-latest
     needs: build-and-push
