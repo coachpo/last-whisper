@@ -25,6 +25,19 @@ jobs:
         submodules: recursive
         token: ${{ secrets.PAT_TOKEN }}
 
+    - name: Debug directory structure
+      run: |
+        echo "=== Root directory contents ==="
+        ls -la
+        echo "=== Backend directory contents ==="
+        ls -la last-whisper-backend/ || echo "Backend directory not found"
+        echo "=== Frontend directory contents ==="
+        ls -la last-whisper-frontend/ || echo "Frontend directory not found"
+        echo "=== Backend Dockerfile ==="
+        ls -la last-whisper-backend/Dockerfile || echo "Backend Dockerfile not found"
+        echo "=== Frontend Dockerfile ==="
+        ls -la last-whisper-frontend/Dockerfile || echo "Frontend Dockerfile not found"
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
