@@ -24,11 +24,6 @@ services:
     expose:
       - "8000"
     environment:
-      - ENVIRONMENT=production
-      - TTS_PROVIDER=local
-      - LOG_LEVEL=info
-      - CORS_ORIGINS=https://lw.687786.xyz
-      - HF_HOME=/app/.cache/huggingface
       - TTS_PROVIDER=google
       - GOOGLE_APPLICATION_CREDENTIALS=/app/keys/google-credentials.json
     volumes:
@@ -48,7 +43,11 @@ services:
       context: ./last-whisper-frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
+        - NEXT_PUBLIC_API_URL=http://localhost:8008/apis
+        - NEXT_PUBLIC_DEBUG_LOGGING=false
+        - NODE_ENV=production
+        - PORT=3000
+        - HOSTNAME=0.0.0.0
     container_name: last-whisper-frontend
     expose:
       - "3000"

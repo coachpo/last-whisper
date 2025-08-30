@@ -1,11 +1,11 @@
-https://lw.687786.xyz {
+http://localhost:8008 {
     # Backend API - proxy /apis/* requests to backend (must come first)
     handle /apis/* {
         uri strip_prefix /apis
         reverse_proxy backend:8000
     }
     
-    # Health check endpoint
+    # Health check endpoint - also proxy to backend
     handle /health {
         reverse_proxy backend:8000
     }
@@ -18,7 +18,7 @@ https://lw.687786.xyz {
     # Enable compression
     encode gzip
     
-    # Security headers (without HSTS since we're not using HTTPS)
+    # Security headers (HTTP version)
     header {
         # Prevent clickjacking
         X-Frame-Options "SAMEORIGIN"
