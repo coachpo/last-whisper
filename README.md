@@ -1,6 +1,5 @@
 # Last Whisper 🎯
-[![Last Whisper CI/CD Pipeline](https://github.com/coachpo/last-whisper/actions/workflows/docker-build.yml/badge.svg?branch=main)](https://github.com/coachpo/last-whisper/actions/workflows/docker-build.yml)
-[![Last Whisper Test Pipeline](https://github.com/coachpo/last-whisper/actions/workflows/test-build.yml/badge.svg?branch=main)](https://github.com/coachpo/last-whisper/actions/workflows/test-build.yml)
+[![CI/CD Pipeline](https://github.com/coachpo/last-whisper/actions/workflows/docker-build.yml/badge.svg?branch=main)](https://github.com/coachpo/last-whisper/actions/workflows/docker-build.yml)
 
 A comprehensive dictation training platform with advanced Text-to-Speech (TTS) capabilities, built with FastAPI backend and Next.js frontend. Perfect for language learning, pronunciation practice, and dictation exercises.
 
