@@ -47,7 +47,7 @@ print_status "Checking GitHub token permissions..."
 
 # Get token info
 TOKEN_INFO=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user)
-USERNAME=$(echo "$TOKEN_INFO" | grep -o '"login":"[^"]*"' | cut -d'"' -f4)
+USERNAME=$(echo "$TOKEN_INFO" | grep '"login"' | cut -d'"' -f4)
 
 if [ -z "$USERNAME" ]; then
     print_error "❌ Token is invalid or expired"
