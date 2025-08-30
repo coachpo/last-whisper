@@ -1,0 +1,35 @@
+name: GHCR Cleanup
+on:
+  schedule:
+    - cron: "0 3 * * 0"   # Sundays 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write   # required for deleting package versions
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [last-whisper-backend, last-whisper-frontend]  # your images
+    steps:
+      # 1. Delete ALL untagged versions first
+      - name: Delete untagged versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-type: container
+          package-name: ${{ matrix.image }}
+          delete-only-untagged-versions: true
+          # owner: your-org-or-username   # uncomment if packages are org-scoped
+
+      # 2. Keep only the latest 5 tagged versions (protect latest & main)
+      - name: Delete old tagged versions (keep 5)
+        uses: actions/delete-package-versions@v5
+        with:
+          package-type: container
+          package-name: ${{ matrix.image }}
+          min-versions-to-keep: 5
+          ignore-versions: '^latest$|^main$'
+          # owner: your-org-or-username
