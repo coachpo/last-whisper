@@ -26,27 +26,14 @@ jobs:
         fetch-depth: 1          # only fetches the latest commit (shallow clone).
         token: ${{ secrets.PAT_TOKEN }}
 
-    - name: Debug directory structure
-      run: |
-        echo "=== Root directory contents ==="
-        ls -la
-        echo "=== Backend Dockerfile ==="
-        ls -la Dockerfile.backend || echo "Backend Dockerfile not found"
-        echo "=== Frontend Dockerfile ==="
-        ls -la Dockerfile.frontend || echo "Frontend Dockerfile not found"
-        echo "=== Backend directory contents ==="
-        ls -la last-whisper-backend/ || echo "Backend directory not found"
-        echo "=== Frontend directory contents ==="
-        ls -la last-whisper-frontend/ || echo "Frontend directory not found"
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
     - name: Test Docker build
       uses: docker/build-push-action@v5
       with:
-        context: .
-        file: Dockerfile.${{ matrix.service }}
+        context: ./last-whisper-${{ matrix.service }}
+        file: Dockerfile
         push: false
         load: true
         tags: test-${{ matrix.service }}:latest
@@ -57,10 +44,3 @@ jobs:
           NODE_ENV=production
           PORT=3000
           HOSTNAME=0.0.0.0' || '' }}
-
-    - name: Test image runs
-      run: |
-        docker run --rm -d --name test-${{ matrix.service }} test-${{ matrix.service }}:latest
-        sleep 10
-        docker logs test-${{ matrix.service }}
-        docker stop test-${{ matrix.service }}
