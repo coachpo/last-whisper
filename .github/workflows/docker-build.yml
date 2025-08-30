@@ -90,63 +90,6 @@ jobs:
           echo "Inspecting $REF"
           docker buildx imagetools inspect "$REF"
 
-      - name: Clean up old images (keep latest only)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SERVICE: ${{ matrix.service }}
-          OWNER: ${{ github.repository_owner }}
-        run: |
-          set -euo pipefail
-
-          if [ "${SERVICE}" = "backend" ]; then
-            PACKAGE_NAME="last-whisper-backend"
-          else
-            PACKAGE_NAME="last-whisper-frontend"
-          fi
-
-          echo "Cleaning up old versions of ${PACKAGE_NAME} under owner ${OWNER}"
-
-          # Determine whether owner is an org (200) or a user (404)
-          if gh api "orgs/${OWNER}" >/dev/null 2>&1; then
-            LIST_PATH="/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions"
-            DELETE_BASE="/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions"
-          else
-            LIST_PATH="/user/packages/container/${PACKAGE_NAME}/versions"
-            DELETE_BASE="/user/packages/container/${PACKAGE_NAME}/versions"
-          fi
-
-          # Check if package exists first
-          if ! gh api "${LIST_PATH}" >/dev/null 2>&1; then
-            echo "Package ${PACKAGE_NAME} does not exist yet. No cleanup needed."
-            exit 0
-          fi
-
-          # List all versions across pages, newest first; drop the newest; output IDs
-          VERSIONS=$(gh api --paginate \
-              -H "Accept: application/vnd.github+json" \
-              "${LIST_PATH}" 2>/dev/null | jq -r '
-                if type == "array" and length > 0 then
-                  sort_by(.created_at) | reverse | .[1:] | .[].id
-                else
-                  empty
-                end
-              ')
-
-          if [ -z "${VERSIONS}" ]; then
-            echo "No old versions to delete."
-            exit 0
-          fi
-
-          for version_id in ${VERSIONS}; do
-            echo "Deleting old version ${version_id}"
-            gh api \
-              --method DELETE \
-              -H "Accept: application/vnd.github+json" \
-              "${DELETE_BASE}/${version_id}" || true
-          done
-
-          echo "Cleanup completed - only latest version remains"
-
   security-scan:
     runs-on: ubuntu-latest
     needs: build-and-push
