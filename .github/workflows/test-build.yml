@@ -22,13 +22,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        submodules: recursive
         token: ${{ secrets.PAT_TOKEN }}
 
-    - name: Initialize and update submodules
+    - name: Checkout submodules
       run: |
+        git config --global --add safe.directory /home/runner/work/last-whisper/last-whisper
+        git submodule sync --recursive
         git submodule update --init --recursive --force
         git submodule foreach --recursive git checkout main
+        git submodule foreach --recursive git pull origin main
 
     - name: Debug directory structure
       run: |
