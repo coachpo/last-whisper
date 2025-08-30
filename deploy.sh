@@ -2,6 +2,7 @@
 
 # Last Whisper Deployment Script
 # This script deploys the application using Docker Compose with GitHub Container Registry images
+# Images are automatically built and pushed by GitHub Actions CI/CD pipeline
 
 set -e
 
@@ -50,10 +51,12 @@ fi
 
 print_status "Deploying Last Whisper with repository: $GITHUB_REPOSITORY"
 
-# Login to GitHub Container Registry (optional, for private repos)
+# Login to GitHub Container Registry (required for private repos)
 if [ "$GITHUB_TOKEN" ]; then
     print_status "Logging in to GitHub Container Registry..."
     echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin
+else
+    print_warning "GITHUB_TOKEN not set. This may cause issues with private repositories."
 fi
 
 # Pull latest images

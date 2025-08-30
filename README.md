@@ -44,6 +44,17 @@ docker-compose up
 
 ### Production Deployment with GitHub Container Registry
 
+The project includes automated CI/CD using GitHub Actions that builds and pushes Docker images to GitHub Container Registry.
+
+#### Automated CI/CD Pipeline
+
+- **Main Pipeline**: Builds and pushes images on every push to `main` branch
+- **Test Pipeline**: Validates builds on pull requests
+- **Multi-platform**: Supports both `linux/amd64` and `linux/arm64` architectures
+- **Security Scanning**: Includes Trivy security scanning for built images
+
+#### Manual Deployment
+
 For production deployments using pre-built images from GitHub Container Registry:
 
 1. Set up environment variables:
@@ -103,6 +114,9 @@ last-whisper/
 ├── docker-compose.prod.yml # Production deployment with registry images
 ├── deploy.sh              # Production deployment script
 ├── env.template           # Environment variables template
+├── .github/workflows/     # GitHub Actions CI/CD pipelines
+│   ├── docker-build.yml   # Main CI/CD pipeline
+│   └── test-build.yml     # Test pipeline for PRs
 └── README.md              # This file
 ```
 
