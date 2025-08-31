@@ -37,7 +37,6 @@ services:
     build:
       context: ./last-whisper-frontend
       dockerfile: Dockerfile
-      # Build arguments for the frontend Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=http://localhost:8000
         - NEXT_PUBLIC_DEBUG_LOGGING=true
