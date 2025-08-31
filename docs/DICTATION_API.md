@@ -126,7 +126,7 @@ base_url: str = "http://localhost:8000"
 
 # TTS Provider Selection
 tts_provider: str = "local"  # Options: "local", "azure", "gcp"
-tts_supported_languages: list[str] = ["fi"]
+tts_supported_languages: list[str] = ["fi"]  # Can be set via env var as comma-separated: "fi,en,de" (Docker) or JSON: '["fi"]'
 
 # Local TTS Settings (when tts_provider="local")
 tts_device: Optional[str] = None  # None for auto-detection
