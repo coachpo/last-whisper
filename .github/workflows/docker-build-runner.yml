@@ -1,0 +1,114 @@
+name: CI/CD Pipeline-Runner
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/last-whisper-backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/last-whisper-frontend
+  # Frontend-specific environment variables from repository variables
+  NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+  NEXT_PUBLIC_DEBUG_LOGGING: ${{ vars.NEXT_PUBLIC_DEBUG_LOGGING }}
+  NODE_ENV: ${{ vars.NODE_ENV }}
+  HOSTNAME: ${{ vars.HOSTNAME }}
+  PORT: ${{ vars.PORT }}
+
+jobs:
+  build-and-push:
+    runs-on: codespaces-1eb8ee-runner
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service: [ backend, frontend ] # Build both services in parallel
+
+    steps:
+      # NECESSARY: Get source code with submodules
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+          token: ${{ secrets.PAT_TOKEN }}
+
+      # OPTIONAL: Only needed if targeting ARM64 on x86 runners
+      - name: Set up QEMU (for arm64 emulation)
+        uses: docker/setup-qemu-action@v3
+
+      # NECESSARY: Required for multi-platform builds and caching
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      # NECESSARY: Required to push to GitHub Container Registry
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # NECESSARY: Generate proper image tags and metadata
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ matrix.service == 'backend' && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=raw,value=latest
+
+      # NECESSARY: Core build and push step
+      - name: Build and push Docker image (arm64)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./last-whisper-${{ matrix.service }}
+          file: ./last-whisper-${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha # GitHub Actions cache for faster builds
+          cache-to: type=gha,mode=max
+          platforms: linux/arm64 # Only ARM64 - could add linux/amd64 for multi-arch
+          provenance: false # Disables SLSA provenance attestation
+          sbom: false # Disables Software Bill of Materials
+          build-args: |
+            ${{ matrix.service == 'frontend' && format('NEXT_PUBLIC_API_URL={0}
+            NEXT_PUBLIC_DEBUG_LOGGING={1}
+            NODE_ENV={2}
+            PORT={3}
+            HOSTNAME={4}', env.NEXT_PUBLIC_API_URL, env.NEXT_PUBLIC_DEBUG_LOGGING, env.NODE_ENV, env.PORT, env.HOSTNAME) || '' }}
+
+
+  # OPTIONAL: Custom notification system
+  notify-completion:
+    runs-on: codespaces-1eb8ee-runner
+    needs: [build-and-push]
+    if: always()
+    steps:
+      - name: Send workflow completion notification via Bark
+        run: |
+          if [ "${{ needs.build-and-push.result }}" == "success" ]; then
+            # Success notification
+            curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/🚀%20CI%20CD%20Pipeline%20Complete/🎉%20CI%20CD%20pipeline%20completed%20successfully!%20All%20Docker%20images%20built%20and%20pushed." \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "birdsong",
+                "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+                "group": "LastWhisper"
+              }'
+          else
+            # Failure notification
+            curl -X POST "https://bark.687786.xyz/GSDZFBaQN7hTMGV4wuLYGM/🚀%20CI%20CD%20Pipeline%20Failed/💥%20CI%20CD%20pipeline%20failed.%20Build:%20${{ needs.build-and-push.result }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "shake",
+                "icon": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+                "group": "LastWhisper"
+              }'
+          fi
