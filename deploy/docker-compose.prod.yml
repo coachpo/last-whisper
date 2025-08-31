@@ -24,6 +24,7 @@ services:
     environment:
       - TTS_PROVIDER=google
       - GOOGLE_APPLICATION_CREDENTIALS=/app/keys/google-credentials.json
+      - TTS_SUPPORTED_LANGUAGES=["fi"]
     volumes:
       - audio_data:/app/audio
       - database_data:/app/data
