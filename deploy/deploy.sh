@@ -67,6 +67,15 @@ docker compose -f docker-compose.prod.yml pull
 print_status "Stopping existing containers..."
 docker compose -f docker-compose.prod.yml down
 
+# Check if keys folder exists, create if it doesn't
+if [ ! -d "keys" ]; then
+    print_status "Creating keys directory..."
+    mkdir -p keys
+    print_status "Keys directory created successfully"
+else
+    print_status "Keys directory already exists"
+fi
+
 # Start services
 print_status "Starting services..."
 docker compose -f docker-compose.prod.yml up -d
