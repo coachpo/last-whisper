@@ -63,7 +63,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/arm64
-          provenance: true
+          provenance: false
+          sbom: false
           build-args: |
             ${{ matrix.service == 'frontend' && 'NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
             NEXT_PUBLIC_DEBUG_LOGGING=false
