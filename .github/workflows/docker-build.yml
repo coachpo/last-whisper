@@ -12,7 +12,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: codespaces-1eb8ee-runner
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -80,7 +80,7 @@ jobs:
 
 
   notify-completion:
-    runs-on: codespaces-1eb8ee-runner
+    runs-on: ubuntu-latest
     needs: [build-and-push]
     if: always()
     steps:
