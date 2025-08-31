@@ -64,33 +64,9 @@ docker-compose up
 
 The application will be ready in a few minutes with all services running and connected.
 
-### Production Deployment with GitHub Container Registry
+### Production Deployment
 
-The project includes automated CI/CD using GitHub Actions that builds and pushes Docker images to GitHub Container Registry.
-
-#### Automated CI/CD Pipeline
-
-- **Main Pipeline**: Builds and pushes images on every push to `main` branch
-- **Test Pipeline**: Validates builds on pull requests
-- **Multi-platform**: Supports both `linux/amd64` and `linux/arm64` architectures
-- **Security Scanning**: Includes Trivy security scanning for built images
-
-#### Manual Deployment
-
-For production deployments using pre-built images from GitHub Container Registry:
-
-1. Set up environment variables:
-```bash
-cp env.template .env
-# Edit .env with your configuration
-```
-
-2. Deploy using the deployment script:
-```bash
-./deploy.sh
-```
-
-See [GitHub CI/CD Documentation](docs/GITHUB_CI_CD.md) for detailed setup instructions.
+For production deployment instructions, environment setup, and CI/CD configuration, see the comprehensive [Deployment Guide](deploy/DEPLOYMENT_GUIDE.md).
 
 ### Local Development
 
@@ -133,9 +109,13 @@ last-whisper/
 │   ├── install.sh         # Quick setup script
 │   └── README.md          # Frontend quick start guide
 ├── docker-compose.yml     # Development deployment
-├── docker-compose.prod.yml # Production deployment with registry images
-├── deploy.sh              # Production deployment script
-├── env.template           # Environment variables template
+├── deploy/                # Production deployment files
+│   ├── DEPLOYMENT_GUIDE.md # Comprehensive deployment documentation
+│   ├── docker-compose.prod.yml # Production deployment configuration
+│   ├── deploy.sh          # Production deployment script
+│   ├── env.template       # Environment variables template
+│   ├── Caddyfile          # Reverse proxy configuration
+│   └── keys/              # API keys and credentials
 ├── .github/workflows/     # GitHub Actions CI/CD pipelines
 │   ├── docker-build.yml   # Main CI/CD pipeline
 │   └── test-build.yml     # Test pipeline for PRs
@@ -148,7 +128,8 @@ For comprehensive documentation including API reference, architecture details, a
 
 ### CI/CD and Deployment
 
-- [GitHub CI/CD Setup](docs/GITHUB_CI_CD.md) - Complete guide for setting up automated builds and deployments
+- [Deployment Guide](deploy/DEPLOYMENT_GUIDE.md) - Complete production deployment guide with all options
+- [GitHub CI/CD Setup](docs/GITHUB_CI_CD.md) - Detailed CI/CD pipeline configuration
 
 ## 🛠️ Technology Stack
 
