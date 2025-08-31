@@ -9,6 +9,11 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME_BACKEND: ${{ github.repository }}/last-whisper-backend
   IMAGE_NAME_FRONTEND: ${{ github.repository }}/last-whisper-frontend
+  NEXT_PUBLIC_API_URL: https://lw.687786.xyz/apis
+  NEXT_PUBLIC_DEBUG_LOGGING: false
+  NODE_ENV: production
+  PORT: 3000
+  HOSTNAME: 0.0.0.0
 
 jobs:
   build-and-push:
@@ -66,18 +71,17 @@ jobs:
           provenance: false
           sbom: false
           build-args: |
-            ${{ matrix.service == 'frontend' && 'NEXT_PUBLIC_API_URL=https://lw.687786.xyz/apis
-            NEXT_PUBLIC_DEBUG_LOGGING=false
-            NODE_ENV=production
-            PORT=3000
-            HOSTNAME=0.0.0.0' || '' }}
+            ${{ matrix.service == 'frontend' && format('NEXT_PUBLIC_API_URL={0}
+            NEXT_PUBLIC_DEBUG_LOGGING={1}
+            NODE_ENV={2}
+            PORT={3}
+            HOSTNAME={4}', env.NEXT_PUBLIC_API_URL, env.NEXT_PUBLIC_DEBUG_LOGGING, env.NODE_ENV, env.PORT, env.HOSTNAME) || '' }}
 
       - name: Inspect pushed manifest
         run: |
           REF="${{ env.REGISTRY }}/${{ matrix.service == 'backend' && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:latest"
           echo "Inspecting $REF"
           docker buildx imagetools inspect "$REF"
-
 
   notify-completion:
     runs-on: ubuntu-latest
