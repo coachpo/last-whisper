@@ -22,26 +22,13 @@ The easiest way to get started is using Docker Compose, which handles all depend
 
 ### Setup Steps
 
-1. **Clone the repository:**
-```bash
-git clone https://github.com/coachpo/last-whisper.git
-cd last-whisper
-```
-
-2. **Initialize Git submodules:**
-```bash
-git submodule update --init --recursive
-```
-
-3. **Start the full stack:**
-```bash
-docker-compose up
-```
-
-4. **Access the application:**
-- 🌐 **Frontend**: http://localhost:3000
-- 🔧 **Backend API**: http://localhost:8000
-- 📚 **API Documentation**: http://localhost:8000/docs
+1. **Clone the repository** and navigate to the project directory
+2. **Initialize Git submodules** to ensure all components are available
+3. **Start the full stack** using Docker Compose
+4. **Access the application** at the following endpoints:
+   - 🌐 **Frontend**: http://localhost:3000
+   - 🔧 **Backend API**: http://localhost:8000
+   - 📚 **API Documentation**: http://localhost:8000/docs
 
 The application will be ready in a few minutes with all services running and connected.
 
@@ -62,16 +49,13 @@ The project includes automated CI/CD using GitHub Actions that builds and pushes
 
 For production deployments using pre-built images from GitHub Container Registry:
 
-1. **Set up environment variables:**
-```bash
-cp env.template .env
-# Edit .env with your configuration
-```
+1. **Set up environment variables** by copying the template and configuring your settings
+2. **Deploy using the deployment script** provided in the deploy directory
 
-2. **Deploy using the deployment script:**
-```bash
-./deploy.sh
-```
+**Configuration Files:**
+- Environment template: [deploy/env.template](../deploy/env.template)
+- Deployment script: [deploy/deploy.sh](../deploy/deploy.sh)
+- Production compose: [deploy/docker-compose.prod.yml](../deploy/docker-compose.prod.yml)
 
 ### Production Configuration
 
@@ -103,12 +87,16 @@ The CI/CD pipeline automatically:
 
 ### Pipeline Configuration
 
-The pipeline is configured in `.github/workflows/docker-build.yml` and includes:
+The pipeline is configured in the GitHub Actions workflow files and includes:
 
 - **Build Matrix**: Multiple Node.js and Python versions
 - **Cache Optimization**: Docker layer caching for faster builds
 - **Security Scanning**: Vulnerability detection
 - **Registry Push**: Automatic image publishing
+
+**Workflow Files:**
+- Main CI/CD pipeline: [.github/workflows/docker-build.yml](../.github/workflows/docker-build.yml)
+- Docker build runner: [.github/workflows/docker-build-runner.yml](../.github/workflows/docker-build-runner.yml)
 
 ### Manual Trigger
 
@@ -122,25 +110,15 @@ You can manually trigger the pipeline by:
 
 ### Environment Variables
 
-Create a `.env` file based on `env.template`:
+Create a `.env` file based on the environment template. The template includes all necessary configuration options:
 
-```bash
-# GitHub Container Registry Configuration
-GITHUB_REPOSITORY=coachpo/last-whisper
-GITHUB_USERNAME=your-username
-GITHUB_TOKEN=your-github-token
+**Key Configuration Categories:**
+- **GitHub Container Registry**: Repository settings and authentication
+- **Application Configuration**: Environment mode, API URLs, and debug settings
+- **TTS Configuration**: Provider selection and service-specific settings
+- **Logging Configuration**: Log levels and output formatting
 
-# Application Configuration
-NODE_ENV=production
-NEXT_PUBLIC_API_URL=https://your-domain.com/apis
-NEXT_PUBLIC_DEBUG_LOGGING=false
-
-# TTS Configuration
-TTS_PROVIDER=google
-
-# Logging Configuration
-LOG_LEVEL=info
-```
+**Template File:** [deploy/env.template](../deploy/env.template)
 
 ### TTS Provider Setup
 
@@ -153,61 +131,58 @@ LOG_LEVEL=info
 
 #### Azure Speech Services
 
-1. **Create an Azure Speech resource**
-2. **Get your subscription key and region**
-3. **Set environment variables**:
-   ```bash
-   TTS_PROVIDER=azure
-   AZURE_SPEECH_KEY=your-key
-   AZURE_SPEECH_REGION=your-region
-   ```
+1. **Create an Azure Speech resource** in your Azure portal
+2. **Get your subscription key and region** from the resource
+3. **Configure environment variables** for Azure TTS provider
+
+**Required Environment Variables:**
+- `TTS_PROVIDER=azure`
+- `AZURE_SPEECH_KEY` - Your Azure Speech service key
+- `AZURE_SPEECH_REGION` - Your Azure region
 
 ### Domain Configuration
 
 For production deployments with custom domains:
 
-1. **Update Caddyfile** with your domain
+1. **Update Caddyfile** with your domain configuration
 2. **Set DNS records** to point to your server
 3. **Configure SSL** (handled automatically by Caddy)
+
+**Configuration File:** [deploy/Caddyfile](../deploy/Caddyfile)
 
 ## 🛠️ Manual Deployment
 
 ### Backend Setup
 
-```bash
-cd last-whisper-backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python run_api.py
-```
+For manual backend deployment:
+
+1. **Navigate to backend directory** and set up Python virtual environment
+2. **Install dependencies** from requirements.txt
+3. **Run the development server** using the provided run script
 
 ### Frontend Setup
 
-```bash
-cd last-whisper-frontend
-pnpm install
-pnpm run dev
-```
+For manual frontend deployment:
+
+1. **Navigate to frontend directory** and install Node.js dependencies
+2. **Configure environment variables** for API connection
+3. **Start the development server** with hot reload
 
 ### Production Build
 
 #### Backend Production
 
-```bash
-cd last-whisper-backend
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
+For production backend deployment:
+
+1. **Install production dependencies** from requirements.txt
+2. **Run with production ASGI server** (Uvicorn) on specified host and port
 
 #### Frontend Production
 
-```bash
-cd last-whisper-frontend
-pnpm install
-pnpm run build
-pnpm run start
-```
+For production frontend deployment:
+
+1. **Install dependencies** and build the application
+2. **Start the production server** with optimized build
 
 ## 🔧 Troubleshooting
 
@@ -216,105 +191,53 @@ pnpm run start
 #### Docker Issues
 
 **Problem**: Images not pulling from GitHub Container Registry
-**Solution**: 
-```bash
-# Login to GitHub Container Registry
-echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
-```
+**Solution**: Authenticate with GitHub Container Registry using your GitHub token and username
 
 **Problem**: Permission denied errors
-**Solution**:
-```bash
-# Check file permissions
-chmod +x deploy.sh
-```
+**Solution**: Ensure the deployment script has execute permissions
 
 #### Service Issues
 
 **Problem**: Backend not starting
-**Solution**:
-```bash
-# Check logs
-docker compose -f docker-compose.prod.yml logs backend
-
-# Check environment variables
-docker compose -f docker-compose.prod.yml config
-```
+**Solution**: Check container logs and verify environment variable configuration
 
 **Problem**: Frontend not loading
-**Solution**:
-```bash
-# Check frontend logs
-docker compose -f docker-compose.prod.yml logs frontend
-
-# Verify API URL configuration
-echo $NEXT_PUBLIC_API_URL
-```
+**Solution**: Check frontend container logs and verify API URL configuration
 
 #### Database Issues
 
 **Problem**: Database not persisting
-**Solution**:
-```bash
-# Check volume mounts
-docker volume ls | grep last-whisper
-
-# Inspect volume
-docker volume inspect last-whisper_database_data
-```
+**Solution**: Check Docker volume mounts and inspect volume configuration
 
 ### Health Checks
 
-Check if services are running:
+Check if services are running by:
 
-```bash
-# Check container status
-docker compose -f docker-compose.prod.yml ps
-
-# Check service health
-curl http://localhost:8008/health
-
-# Check API documentation
-curl http://localhost:8008/apis/docs
-```
+1. **Checking container status** using Docker Compose
+2. **Verifying service health** through health endpoints
+3. **Accessing API documentation** to confirm backend connectivity
 
 ### Logs
 
-View logs for debugging:
+View logs for debugging by:
 
-```bash
-# All services
-docker compose -f docker-compose.prod.yml logs
-
-# Specific service
-docker compose -f docker-compose.prod.yml logs backend
-docker compose -f docker-compose.prod.yml logs frontend
-docker compose -f docker-compose.prod.yml logs caddy
-
-# Follow logs in real-time
-docker compose -f docker-compose.prod.yml logs -f
-```
+1. **Checking all services** for general issues
+2. **Examining specific service logs** (backend, frontend, caddy)
+3. **Following logs in real-time** for live monitoring
 
 ### Performance Monitoring
 
-Monitor resource usage:
+Monitor resource usage by:
 
-```bash
-# Container resource usage
-docker stats
-
-# Disk usage
-docker system df
-
-# Volume usage
-docker volume ls
-```
+1. **Checking container resource usage** with Docker stats
+2. **Monitoring disk usage** and system resources
+3. **Inspecting volume usage** and storage consumption
 
 ## 📚 Additional Resources
 
-- [GitHub CI/CD Documentation](../docs/GITHUB_CI_CD.md) - Detailed CI/CD setup
-- [Docker Setup Guide](../docs/DOCKER_SETUP.md) - Docker configuration details
-- [Environment Testing](../docs/ENV_TESTING.md) - Environment validation
+- [GitHub CI/CD Documentation](GITHUB_CI_CD.md) - Detailed CI/CD setup
+- [Docker Setup Guide](DOCKER_SETUP.md) - Docker configuration details
+- [Environment Testing](ENV_TESTING.md) - Environment validation
 - [API Documentation](http://localhost:8000/docs) - Interactive API docs
 
 ## 🆘 Support

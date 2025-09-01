@@ -66,7 +66,7 @@ The application will be ready in a few minutes with all services running and con
 
 ### Production Deployment
 
-For production deployment instructions, environment setup, and CI/CD configuration, see the comprehensive [Deployment Guide](deploy/DEPLOYMENT_GUIDE.md).
+For production deployment instructions, environment setup, and CI/CD configuration, see the comprehensive [Deployment Guide](docs/DEPLOYMENT_GUIDE.md).
 
 ### Local Development
 
@@ -110,7 +110,6 @@ last-whisper/
 │   └── README.md          # Frontend quick start guide
 ├── docker-compose.yml     # Development deployment
 ├── deploy/                # Production deployment files
-│   ├── DEPLOYMENT_GUIDE.md # Comprehensive deployment documentation
 │   ├── docker-compose.prod.yml # Production deployment configuration
 │   ├── deploy.sh          # Production deployment script
 │   ├── env.template       # Environment variables template
@@ -128,7 +127,7 @@ For comprehensive documentation including API reference, architecture details, a
 
 ### CI/CD and Deployment
 
-- [Deployment Guide](deploy/DEPLOYMENT_GUIDE.md) - Complete production deployment guide with all options
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Complete production deployment guide with all options
 - [GitHub CI/CD Setup](docs/GITHUB_CI_CD.md) - Detailed CI/CD pipeline configuration
 
 ## 🛠️ Technology Stack
