@@ -111,21 +111,32 @@ jobs:
 
   notify-completion:
     runs-on: ubuntu-latest
-    needs: [ cleanup-untagged ]
+    needs: [ build-and-push, cleanup-untagged ]
     if: always()
     steps:
       - name: Send workflow completion notification via Bark
         run: |
-          if [ "${{ needs.build-and-push.result }}" == "success" ]; then
-            curl -X POST "${{ env.BARK_URL }}/🚀%20CI%20CD%20Pipeline%20Complete/🎉%20CI%20CD%20pipeline%20completed%20successfully!%20All%20Docker%20images%20built%20and%20pushed." \
+          BUILD_STATUS="${{ needs.build-and-push.result }}"
+          CLEANUP_STATUS="${{ needs.cleanup-untagged.result }}"
+          
+          if [ "$BUILD_STATUS" == "success" ] && [ "$CLEANUP_STATUS" == "success" ]; then
+            curl -X POST "${{ env.BARK_URL }}/🚀%20Pipeline%20Success/✅%20Both%20backend%20and%20frontend%20images%20built%20and%20pushed%20successfully!%20Cleanup%20completed." \
               -H "Content-Type: application/json" \
               -d '{
                 "sound": "${{ env.BARK_SUCCESS_SOUND }}",
                 "icon": "${{ env.BARK_ICON }}",
                 "group": "${{ env.BARK_GROUP }}"
               }'
+          elif [ "$BUILD_STATUS" == "success" ] && [ "$CLEANUP_STATUS" != "success" ]; then
+            curl -X POST "${{ env.BARK_URL }}/⚠️%20Pipeline%20Partial%20Success/✅%20Images%20built%20successfully%20but%20cleanup%20failed:%20$CLEANUP_STATUS" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "${{ env.BARK_FAILURE_SOUND }}",
+                "icon": "${{ env.BARK_ICON }}",
+                "group": "${{ env.BARK_GROUP }}"
+              }'
           else
-            curl -X POST "${{ env.BARK_URL }}/🚀%20CI%20CD%20Pipeline%20Failed/💥%20CI%20CD%20pipeline%20failed.%20Build:%20${{ needs.build-and-push.result }}" \
+            curl -X POST "${{ env.BARK_URL }}/❌%20Pipeline%20Failed/💥%20Build%20failed:%20$BUILD_STATUS%20|%20Cleanup:%20$CLEANUP_STATUS" \
               -H "Content-Type: application/json" \
               -d '{
                 "sound": "${{ env.BARK_FAILURE_SOUND }}",
