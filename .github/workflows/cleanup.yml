@@ -1,4 +1,4 @@
-name: cleanup
+name: Clean Untagged Images
 on:
   schedule:
     - cron: "0 3 * * 0"   # weekly, Sun 03:00 UTC
