@@ -1,0 +1,25 @@
+name: cleanup
+on:
+  schedule:
+    - cron: "0 3 * * 0"   # weekly, Sun 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        package:
+          - "last-whisper/last-whisper-backend"
+          - "last-whisper/last-whisper-frontend"
+    steps:
+      - name: Delete UNTAGGED versions for ${{ matrix.package }}
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: coachpo                          # your org/user
+          package-type: container
+          package-name: ${{ matrix.package }}     # ghcr.io/coachpo/<this>
+          delete-only-untagged-versions: true
+          min-versions-to-keep: 2                 # safety buffer
