@@ -38,7 +38,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [ ${{ env.BACKEND_SERVICE }}, ${{ env.FRONTEND_SERVICE }} ]
+        service: [ backend, frontend ]
 
     steps:
       - name: Checkout repository with submodules
@@ -98,7 +98,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        service: [ ${{ env.BACKEND_SERVICE }}, ${{ env.FRONTEND_SERVICE }} ]
+        service: [ backend, frontend ]
     steps:
       - name: Delete UNTAGGED versions for ${{ matrix.service }}
         uses: actions/delete-package-versions@v5
