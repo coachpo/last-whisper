@@ -28,13 +28,13 @@ print_error() {
 # Check if .env file exists
 if [ ! -f .env ]; then
     print_warning ".env file not found. Creating from template..."
-    if [ -f .env.example ]; then
-        cp .env.example .env
+    if [ -f env.example ]; then
+        cp env.example .env
         print_status "Created .env file from .env.example"
         print_warning "Please edit .env file with your configuration before running again."
         exit 1
     else
-        print_error ".env.example file not found. Please create a .env file manually."
+        print_error "env.example file not found. Please create a .env file manually."
         exit 1
     fi
 fi
