@@ -18,7 +18,7 @@ services:
   # Backend API service - development build
   backend:
     build:
-      context: ./last-whisper-backend
+      context: ../last-whisper-backend
       dockerfile: Dockerfile
     container_name: last-whisper-backend-dev
     expose:
@@ -35,7 +35,7 @@ services:
   # Frontend service - development build
   frontend:
     build:
-      context: ./last-whisper-frontend
+      context: ../last-whisper-frontend
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=http://localhost:8000
