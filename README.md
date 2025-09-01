@@ -54,7 +54,7 @@ git submodule update --init --recursive
 
 3. **Start the full stack:**
 ```bash
-docker-compose up
+docker compose up
 ```
 
 4. **Access the application:**
@@ -128,7 +128,6 @@ For comprehensive documentation including API reference, architecture details, a
 ### CI/CD and Deployment
 
 - [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Complete production deployment guide with all options
-- [GitHub CI/CD Setup](docs/GITHUB_CI_CD.md) - Detailed CI/CD pipeline configuration
 
 ## 🛠️ Technology Stack
 

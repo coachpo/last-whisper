@@ -4,30 +4,17 @@ This directory contains comprehensive documentation for the Last Whisper project
 
 ## Documentation Index
 
-### Backend Documentation
+### Core Documentation
 
-- **[API Parameter Validation Rules](API_PARAMETER_VALIDATION_RULES.md)** - Complete guide to all API parameter validation rules and constraints
 - **[Architecture](ARCHITECTURE.md)** - System architecture and design patterns
 - **[Dictation API](DICTATION_API.md)** - API documentation for dictation features
-- **[Docker Setup](DOCKER_SETUP.md)** - Docker configuration and deployment guide
-
-### Deployment Documentation
-
 - **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Comprehensive deployment guide for all environments
-- **[GitHub CI/CD](GITHUB_CI_CD.md)** - CI/CD pipeline configuration and setup
-
-### Frontend Documentation
-
-- **[Debug Logging](DEBUG_LOGGING.md)** - Debug logging configuration and usage guide
-- **[Environment Testing](ENV_TESTING.md)** - Environment variable testing and configuration
 
 ## Quick Start
 
 1. **Deployment**: Start with [Deployment Guide](DEPLOYMENT_GUIDE.md) for complete setup instructions
-2. **Backend Setup**: See [Docker Setup](DOCKER_SETUP.md) for backend deployment
-3. **API Reference**: Check [API Parameter Validation Rules](API_PARAMETER_VALIDATION_RULES.md) for API usage
-4. **Frontend Configuration**: See [Environment Testing](ENV_TESTING.md) for frontend setup
-5. **Debugging**: Use [Debug Logging](DEBUG_LOGGING.md) for troubleshooting
+2. **API Reference**: Check [Dictation API](DICTATION_API.md) for API usage
+3. **Architecture**: See [Architecture](ARCHITECTURE.md) for system design and components
 
 ## Project Structure
 
@@ -58,10 +45,8 @@ last-whisper/
 ## Getting Help
 
 - **Deployment Issues**: Start with [Deployment Guide](DEPLOYMENT_GUIDE.md)
-- **API Issues**: Check [API Parameter Validation Rules](API_PARAMETER_VALIDATION_RULES.md)
+- **API Issues**: Check [Dictation API](DICTATION_API.md)
 - **Architecture Questions**: See [Architecture](ARCHITECTURE.md)
-- **Docker Problems**: Refer to [Docker Setup](DOCKER_SETUP.md)
-- **Frontend Issues**: Check [Environment Testing](ENV_TESTING.md) and [Debug Logging](DEBUG_LOGGING.md)
 
 ## Contributing
 

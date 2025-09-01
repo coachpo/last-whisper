@@ -235,9 +235,8 @@ Monitor resource usage by:
 
 ## 📚 Additional Resources
 
-- [GitHub CI/CD Documentation](GITHUB_CI_CD.md) - Detailed CI/CD setup
-- [Docker Setup Guide](DOCKER_SETUP.md) - Docker configuration details
-- [Environment Testing](ENV_TESTING.md) - Environment validation
+- [Architecture Documentation](ARCHITECTURE.md) - System design and components
+- [Dictation API Documentation](DICTATION_API.md) - Complete API reference
 - [API Documentation](http://localhost:8000/docs) - Interactive API docs
 
 ## 🆘 Support
