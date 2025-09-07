@@ -17,7 +17,7 @@ env:
   BUILD_PLATFORM: linux/arm64
   DOCKER_DRIVER: docker-container
   # Notification settings
-  BARK_URL: ${{ vars.BARK_URL }}
+  BARK_SERVER_URL: ${{ vars.BARK_SERVER_URL }}
   BARK_SUCCESS_SOUND: birdsong
   BARK_FAILURE_SOUND: shake
   BARK_ICON: https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png
@@ -120,7 +120,7 @@ jobs:
           CLEANUP_STATUS="${{ needs.cleanup-untagged.result }}"
           
           if [ "$BUILD_STATUS" == "success" ] && [ "$CLEANUP_STATUS" == "success" ]; then
-            curl -X POST "${{ env.BARK_URL }}/🚀%20Pipeline%20Success/✅%20Both%20backend%20and%20frontend%20images%20built%20and%20pushed%20successfully!%20Cleanup%20completed." \
+            curl -X POST "${{ env.BARK_SERVER_URL }}/🚀%20Pipeline%20Success/✅%20Both%20backend%20and%20frontend%20images%20built%20and%20pushed%20successfully!%20Cleanup%20completed." \
               -H "Content-Type: application/json" \
               -d '{
                 "sound": "${{ env.BARK_SUCCESS_SOUND }}",
@@ -128,7 +128,7 @@ jobs:
                 "group": "${{ env.BARK_GROUP }}"
               }'
           elif [ "$BUILD_STATUS" == "success" ] && [ "$CLEANUP_STATUS" != "success" ]; then
-            curl -X POST "${{ env.BARK_URL }}/⚠️%20Pipeline%20Partial%20Success/✅%20Images%20built%20successfully%20but%20cleanup%20failed:%20$CLEANUP_STATUS" \
+            curl -X POST "${{ env.BARK_SERVER_URL }}/⚠️%20Pipeline%20Partial%20Success/✅%20Images%20built%20successfully%20but%20cleanup%20failed:%20$CLEANUP_STATUS" \
               -H "Content-Type: application/json" \
               -d '{
                 "sound": "${{ env.BARK_FAILURE_SOUND }}",
@@ -136,7 +136,7 @@ jobs:
                 "group": "${{ env.BARK_GROUP }}"
               }'
           else
-            curl -X POST "${{ env.BARK_URL }}/❌%20Pipeline%20Failed/💥%20Build%20failed:%20$BUILD_STATUS%20|%20Cleanup:%20$CLEANUP_STATUS" \
+            curl -X POST "${{ env.BARK_SERVER_URL }}/❌%20Pipeline%20Failed/💥%20Build%20failed:%20$BUILD_STATUS%20|%20Cleanup:%20$CLEANUP_STATUS" \
               -H "Content-Type: application/json" \
               -d '{
                 "sound": "${{ env.BARK_FAILURE_SOUND }}",
