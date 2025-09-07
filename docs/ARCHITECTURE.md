@@ -8,8 +8,8 @@ Service project.
 - Provide a clean, production-grade HTTP API for Text-to-Speech (TTS) with multiple provider support
 - Orchestrate model inference, task lifecycle, persistence, and delivery across different TTS providers
 - Remain modular and testable with clear separation of concerns
-- Support multiple TTS providers (Local, Azure, Google Cloud) with easy switching
-- Support CPU/GPU execution and horizontal scalability patterns (Local TTS)
+- Support multiple TTS providers (Azure, Google Cloud) with easy switching
+- Support cloud-based TTS providers with high availability
 - Support dictation practice workflow with TTS integration
 - Maintain backward compatibility with existing TTS API endpoints
 
@@ -18,7 +18,7 @@ Service project.
 - **API Layer (FastAPI)**: HTTP endpoints, request/response validation, error translation.
 - **Service Layer**: Business logic orchestration and integration with external systems.
     - `TTSEngineWrapper` provides unified interface and provider selection logic.
-    - Multiple TTS engines: `TTSEngine` (Local), `TTSEngine` (Azure), `TTSEngine` (GCP).
+    - Multiple TTS engines: `TTSEngine` (Azure), `TTSEngine` (GCP).
     - `TTSEngineManager` orchestrates TTS tasks and synchronizes task statuses with database.
     - Service classes provide business logic for items, attempts, stats, tags, and tasks.
 - **Data Layer**:
@@ -39,7 +39,8 @@ app/
     logging.py        # Logging configuration
     uvicorn_logging.py # Uvicorn-specific logging setup
   models/
-    database.py       # SQLAlchemy ORM models and DB manager
+    models.py         # SQLAlchemy ORM models
+    database_manager.py # Database manager and session handling
     schemas.py        # Pydantic request/response models
   services/
     task_service.py       # TaskService for database operations
@@ -48,7 +49,6 @@ app/
     stats_service.py      # StatsService for analytics
     tags_service.py       # TagsService for preset tag management
   tts_engine/
-    tts_engine_local.py     # Local TTS engine (Facebook MMS-TTS-Fin)
     tts_engine_azure.py     # Azure Speech TTS engine
     tts_engine_gcp.py       # Google Cloud TTS engine
     tts_engine_manager.py   # TTSEngineManager (task orchestration + DB sync)
@@ -80,11 +80,6 @@ run_api.py            # Uvicorn runner
         - Handles provider selection based on configuration (`TTS_PROVIDER` setting)
         - Manages lifecycle (start/stop) for the selected TTS engine
         - Guards usage via `is_initialized` and raises `TTSServiceException` on misuse
-    - **TTSEngine (Local)** (`tts_engine/tts_engine_local.py`)
-        - Loads the Hugging Face model `facebook/mms-tts-fin` and tokenizer
-        - Supports device selection (auto CPU/GPU) and switching
-        - Uses two queues for task processing and status updates
-        - A worker thread processes requests: tokenizes, runs inference, writes WAV files
     - **TTSEngine (Azure)** (`tts_engine/tts_engine_azure.py`)
         - Integrates with Microsoft Azure Cognitive Services Speech
         - Supports multiple Finnish neural voices with random selection
@@ -115,7 +110,7 @@ run_api.py            # Uvicorn runner
     - Provides reporting (status counts, averages, duplicates) and cleanup utilities.
     - Integrates with `Item` model for dictation workflow.
 
-- **Persistence layer (`models/models.py`)**
+- **Persistence layer (`models/`)**
     - SQLAlchemy models:
         - `Task`: TTS task lifecycle with fields for timestamps, output location, audio metadata and device
         - `Item`: Dictation items with TTS status and audio URL
@@ -138,7 +133,6 @@ run_api.py            # Uvicorn runner
 3) `TTSEngineManager.submit_task` checks for duplicates by `text_hash`. If a prior non-failed task exists, returns its
    `task_id` to avoid redundant synthesis.
 4) Otherwise, it forwards to `TTSEngineWrapper.submit_request`, which delegates to the configured TTS engine:
-    - **Local**: Uses Hugging Face model for inference
     - **Azure**: Calls Azure Speech API with configured voice
     - **GCP**: Calls Google Cloud TTS API with WaveNet voice
 5) The selected TTS engine enqueues the job and immediately emits a `queued` message to the public `task_message_queue`.
@@ -204,8 +198,7 @@ run_api.py            # Uvicorn runner
 
 - Centralized via `Settings` with environment variables (`.env`). Key options:
     - **API Settings**: host, port, log level, database URL, docs URLs
-    - **TTS Provider Selection**: `TTS_PROVIDER` (local/azure/gcp)
-    - **Local TTS**: device selection, thread count, supported languages
+    - **TTS Provider Selection**: `TTS_PROVIDER` (azure/gcp)
     - **Azure TTS**: speech key, service region, voice configuration, SSML settings
     - **GCP TTS**: voice name, language code, authentication via service account
     - **Storage**: output directory, audio directory, base URL
@@ -250,7 +243,7 @@ run_api.py            # Uvicorn runner
 
 ### Recent Changes
 
-- **Multiple TTS Providers**: Added support for Local (Facebook MMS-TTS-Fin), Azure Speech, and Google Cloud TTS
+- **Multiple TTS Providers**: Added support for Azure Speech and Google Cloud TTS
 - **Provider Selection**: Implemented `TTSEngineWrapper` for easy switching between TTS providers via configuration
 - **Enhanced Data Models**: Added `Item`, `Attempt`, and `Tag` models for comprehensive dictation workflow
 - **Service Layer Consolidation**: Consolidated business logic into focused service classes

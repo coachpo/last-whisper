@@ -157,7 +157,7 @@ For production deployments with custom domains:
 For manual backend deployment:
 
 1. **Navigate to backend directory** and set up Python virtual environment
-2. **Install dependencies** from requirements.txt
+2. **Install dependencies** using pyproject.toml
 3. **Run the development server** using the provided run script
 
 ### Frontend Setup
@@ -174,7 +174,7 @@ For manual frontend deployment:
 
 For production backend deployment:
 
-1. **Install production dependencies** from requirements.txt
+1. **Install production dependencies** using pyproject.toml
 2. **Run with production ASGI server** (Uvicorn) on specified host and port
 
 #### Frontend Production

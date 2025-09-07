@@ -26,7 +26,7 @@ last-whisper/
 │   ├── audio/             # Generated audio files
 │   ├── keys/              # API keys and credentials
 │   ├── Dockerfile         # Backend container configuration
-│   ├── requirements.txt   # Python dependencies
+│   ├── pyproject.toml     # Python project configuration and dependencies
 │   ├── run_api.py         # Server startup script
 │   ├── dictation.db       # SQLite database
 │   └── README.md          # Backend quick start guide

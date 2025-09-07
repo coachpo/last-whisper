@@ -6,7 +6,7 @@ A comprehensive dictation training platform with advanced Text-to-Speech (TTS) c
 ## ✨ Key Features
 
 ### 🎙️ Advanced TTS Integration
-- **Multiple TTS Providers**: Support for Azure Speech, Google Cloud Text-to-Speech, and Local TTS engines
+- **Multiple TTS Providers**: Support for Azure Speech and Google Cloud Text-to-Speech
 - **High-Quality Audio**: Neural voice synthesis with customizable voice parameters
 - **Batch Processing**: Efficient queue-based TTS conversion for multiple texts
 - **Audio Caching**: Smart caching system for improved performance
@@ -75,7 +75,7 @@ For production deployment instructions, environment setup, and CI/CD configurati
 cd last-whisper-backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
+pip install -e ".[dev]"
 python run_api.py
 ```
 
@@ -96,7 +96,7 @@ last-whisper/
 │   ├── audio/             # Generated audio files
 │   ├── keys/              # API keys and credentials
 │   ├── Dockerfile         # Backend container configuration
-│   ├── requirements.txt   # Python dependencies
+│   ├── pyproject.toml     # Python project configuration and dependencies
 │   ├── run_api.py         # Server startup script
 │   ├── dictation.db       # SQLite database
 │   └── README.md          # Backend quick start guide

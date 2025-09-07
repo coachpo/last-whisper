@@ -11,7 +11,7 @@ features:
 - **Attempts Scoring**: Submit user attempts and get automatic scoring using Word Error Rate (WER)
 - **Statistics**: Get aggregated statistics and practice logs
 - **Tags Management**: Create and manage preset tags for item categorization
-- **Multiple TTS Providers**: Support for Local (Facebook MMS-TTS-Fin), Azure Speech, and Google Cloud TTS
+- **Multiple TTS Providers**: Support for Azure Speech and Google Cloud TTS
 - **Provider Flexibility**: Easy switching between TTS providers via configuration
 - **SQLite Database**: Local database for persistence
 - **Session-less**: No authentication or user sessions required
@@ -76,9 +76,8 @@ features:
 
 ### Text-to-Speech Integration
 
-- **Multiple Provider Support**: Automatic TTS generation using configured provider (Local/Azure/GCP)
+- **Multiple Provider Support**: Automatic TTS generation using configured provider (Azure/GCP)
 - **Provider Selection**: Easy switching between TTS providers via `TTS_PROVIDER` configuration
-- **Local TTS**: Facebook MMS-TTS-Fin model with GPU/CPU support
 - **Azure TTS**: Microsoft Azure Speech with neural voices and SSML support
 - **GCP TTS**: Google Cloud Text-to-Speech with WaveNet voices
 - **Support for different locales**: Configurable language support per provider
@@ -125,12 +124,9 @@ audio_dir: str = "audio"
 base_url: str = "http://localhost:8000"
 
 # TTS Provider Selection
-tts_provider: str = "local"  # Options: "local", "azure", "gcp"
+tts_provider: str = "gcp"  # Options: "azure", "gcp"
 tts_supported_languages: list[str] = ["fi"]  # Can be set via env var as comma-separated: "fi,en,de" (Docker) or JSON: '["fi"]'
 
-# Local TTS Settings (when tts_provider="local")
-tts_device: Optional[str] = None  # None for auto-detection
-tts_thread_count: int = 1
 
 # Azure TTS Settings (when tts_provider="azure")
 # azure_speech_key: str (from environment)
