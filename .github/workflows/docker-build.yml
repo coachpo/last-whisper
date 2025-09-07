@@ -1,0 +1,145 @@
+name: Build Images
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/last-whisper-backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/last-whisper-frontend
+  # Service and directory names
+  BACKEND_SERVICE: backend
+  FRONTEND_SERVICE: frontend
+  PROJECT_PREFIX: last-whisper
+  # Platform and build settings
+  BUILD_PLATFORM: linux/arm64
+  DOCKER_DRIVER: docker-container
+  # Notification settings
+  BARK_SUCCESS_SOUND: birdsong
+  BARK_FAILURE_SOUND: shake
+  BARK_ICON: https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png
+  BARK_GROUP: LastWhisper
+  # Frontend-specific environment variables from repository variables
+  NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+  NEXT_PUBLIC_DEBUG_LOGGING: ${{ vars.NEXT_PUBLIC_DEBUG_LOGGING }}
+  NODE_ENV: ${{ vars.NODE_ENV }}
+  HOSTNAME: ${{ vars.HOSTNAME }}
+  PORT: ${{ vars.PORT }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service: [ backend, frontend ]
+
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Set up QEMU (for arm64 emulation)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: ${{ env.DOCKER_DRIVER }}
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Docker image (arm64)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}
+          file: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: ${{ env.BUILD_PLATFORM }}
+          provenance: false
+          sbom: false
+          build-args: |
+            ${{ matrix.service == env.FRONTEND_SERVICE && format('NEXT_PUBLIC_API_URL={0}
+            NEXT_PUBLIC_DEBUG_LOGGING={1}
+            NODE_ENV={2}
+            PORT={3}
+            HOSTNAME={4}', env.NEXT_PUBLIC_API_URL, env.NEXT_PUBLIC_DEBUG_LOGGING, env.NODE_ENV, env.PORT, env.HOSTNAME) || '' }}
+
+  cleanup-untagged:
+    runs-on: ubuntu-latest
+    needs: [ build-and-push ]
+    if: always()
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        service: [ backend, frontend ]
+    steps:
+      - name: Delete UNTAGGED versions for ${{ matrix.service }}
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: ${{ github.repository_owner }}
+          package-type: container
+          package-name: ${{ env.PROJECT_PREFIX }}/${{ env.PROJECT_PREFIX }}-${{ matrix.service }}
+          delete-only-untagged-versions: true
+
+  notify-completion:
+    runs-on: ubuntu-latest
+    needs: [ build-and-push, cleanup-untagged ]
+    if: always()
+    steps:
+      - name: Send workflow completion notification via Bark
+        run: |
+          BUILD_STATUS="${{ needs.build-and-push.result }}"
+          CLEANUP_STATUS="${{ needs.cleanup-untagged.result }}"
+          
+          if [ "$BUILD_STATUS" == "success" ] && [ "$CLEANUP_STATUS" == "success" ]; then
+            curl -X POST "${{ secrets.BARK_SERVER_URL }}/🚀%20Pipeline%20Success/✅%20Both%20backend%20and%20frontend%20images%20built%20and%20pushed%20successfully!%20Cleanup%20completed." \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "${{ env.BARK_SUCCESS_SOUND }}",
+                "icon": "${{ env.BARK_ICON }}",
+                "group": "${{ env.BARK_GROUP }}"
+              }'
+          elif [ "$BUILD_STATUS" == "success" ] && [ "$CLEANUP_STATUS" != "success" ]; then
+            curl -X POST "${{ secrets.BARK_SERVER_URL }}/⚠️%20Pipeline%20Partial%20Success/✅%20Images%20built%20successfully%20but%20cleanup%20failed:%20$CLEANUP_STATUS" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "${{ env.BARK_FAILURE_SOUND }}",
+                "icon": "${{ env.BARK_ICON }}",
+                "group": "${{ env.BARK_GROUP }}"
+              }'
+          else
+            curl -X POST "${{ secrets.BARK_SERVER_URL }}/❌%20Pipeline%20Failed/💥%20Build%20failed:%20$BUILD_STATUS%20|%20Cleanup:%20$CLEANUP_STATUS" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "sound": "${{ env.BARK_FAILURE_SOUND }}",
+                "icon": "${{ env.BARK_ICON }}",
+                "group": "${{ env.BARK_GROUP }}"
+              }'
+          fi
