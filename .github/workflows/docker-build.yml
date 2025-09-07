@@ -17,7 +17,7 @@ env:
   BUILD_PLATFORM: linux/arm64
   DOCKER_DRIVER: docker-container
   # Notification settings
-  BARK_URL: https://bark.687786.xyz/XbjHAEopZUjW7rEWpvL5WS
+  BARK_URL: ${{ vars.BARK_URL }}
   BARK_SUCCESS_SOUND: birdsong
   BARK_FAILURE_SOUND: shake
   BARK_ICON: https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png
