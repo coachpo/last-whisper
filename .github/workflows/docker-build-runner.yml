@@ -110,7 +110,7 @@ jobs:
             PORT={3}
             HOSTNAME={4}', env.NEXT_PUBLIC_API_URL, env.NEXT_PUBLIC_DEBUG_LOGGING, env.NODE_ENV, env.PORT, env.HOSTNAME) || '' }}
 
-      - name: Delete workflow runs (best-effort)
+      - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@main
         if: ${{ always() }}
         continue-on-error: true
