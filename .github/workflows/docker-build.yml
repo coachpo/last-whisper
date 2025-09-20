@@ -67,11 +67,6 @@ jobs:
       - name: Set up QEMU (for arm64 emulation)
         uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: ${{ env.DOCKER_DRIVER }}
-
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -80,26 +75,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}
-          tags: |
-            type=raw,value=latest
-            type=sha
-            type=ref,event=branch
-
       - name: Build and push Docker image (arm64)
         uses: docker/build-push-action@v5
         with:
           context: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}
           file: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}/Dockerfile
           push: ${{ github.event_name == 'workflow_dispatch' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:latest
+            ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:v${{ github.run_number }}
+          cache-from: |
+            type=gha,scope=${{ matrix.service }}
+            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:cache', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
+            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:buildcache', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
+          cache-to: |
+            type=gha,mode=max,scope=${{ matrix.service }}
+            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:cache,mode=max', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
+            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:buildcache,mode=max', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
           platforms: ${{ env.BUILD_PLATFORM }}
           provenance: false
           sbom: false
@@ -116,25 +108,17 @@ jobs:
     if: always()
     timeout-minutes: 5
     steps:
-      - name: Send workflow completion notification via Bark
-        run: |
-          BUILD_STATUS="${{ needs.build-and-push.result }}"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.service }}" != "all" ]; then
-            TARGET_MSG="the ${{ inputs.service }} image"
-          else
-            TARGET_MSG="backend and frontend images"
-          fi
-
-          if [ "$BUILD_STATUS" = "success" ]; then
-            TITLE="🚀 Pipeline Success"
-            BODY="✅ ${TARGET_MSG} built successfully!"
-            SOUND="${{ env.BARK_SUCCESS_SOUND }}"
-          else
-            TITLE="❌ Pipeline Failed"
-            BODY="💥 Build failed: $BUILD_STATUS"
-            SOUND="${{ env.BARK_FAILURE_SOUND }}"
-          fi
-
-          curl -X POST "${{ env.BARK_SERVER_URL }}/push" \
-            -H "Content-Type: application/json" \
-            -d "{\"title\":\"$TITLE\",\"body\":\"$BODY\",\"sound\":\"$SOUND\",\"icon\":\"${{ env.BARK_ICON }}\",\"group\":\"${{ env.BARK_GROUP }}\"}"
+      - name: Notify via Bark
+        if: always()
+        uses: harryzcy/action-bark@v2.3.0
+        with:
+          status: ${{ needs.build-and-push.result }}
+          on_status: success, failure, cancelled
+          title: "${{ needs.build-and-push.result == 'success' && '🚀 Pipeline Success' || '❌ Pipeline Failed' }}"
+          body: "${{ needs.build-and-push.result == 'success' && (github.event_name == 'workflow_dispatch' && inputs.service != 'all' && format('✅ the {0} image built successfully!', inputs.service) || '✅ backend and frontend images built successfully!') || format('💥 Build failed: {0}', needs.build-and-push.result) }}"
+          device_key: ${{ secrets.BARK_DEVICE_KEY }}
+          level: active
+          sound: ${{ needs.build-and-push.result == 'success' && env.BARK_SUCCESS_SOUND || env.BARK_FAILURE_SOUND }}
+          icon: ${{ env.BARK_ICON }}
+          group: ${{ env.BARK_GROUP }}
+          bark_server_url: ${{ env.BARK_SERVER_URL }}
