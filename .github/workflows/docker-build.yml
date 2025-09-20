@@ -50,12 +50,11 @@ jobs:
     permissions:
       contents: read
       packages: write
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.service == 'all' || matrix.service == inputs.service }}
 
     strategy:
       fail-fast: false
       matrix:
-        service: [ backend, frontend ]
+        service: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.service != 'all' && format('["{0}"]', inputs.service) || '["backend","frontend"]') }}
 
     steps:
       - name: Checkout repository with submodules
