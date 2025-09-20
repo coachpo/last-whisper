@@ -39,7 +39,7 @@ jobs:
         with:
           owner: ${{ github.repository_owner }}
           package-type: container
-          package-name: ${{ env.PROJECT_PREFIX }}/${{ matrix.service }}
+          package-name: ${{ env.PROJECT_PREFIX }}-${{ matrix.service }}
           delete-only-untagged-versions: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
