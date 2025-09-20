@@ -92,12 +92,12 @@ jobs:
             ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:v${{ github.run_number }}
           cache-from: |
             type=gha,scope=${{ matrix.service }}
-            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:cache', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
-            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:buildcache', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:cache
+            type=registry,ref=${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:buildcache
           cache-to: |
             type=gha,mode=max,scope=${{ matrix.service }}
-            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:cache,mode=max', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
-            ${{ github.event_name == 'workflow_dispatch' && format('type=registry,ref={0}/{1}:buildcache,mode=max', env.REGISTRY, matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND) || '' }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:cache,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:buildcache,mode=max
           platforms: ${{ env.BUILD_PLATFORM }}
           provenance: false
           sbom: false
