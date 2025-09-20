@@ -31,7 +31,6 @@ env:
   BUILD_PLATFORM: linux/arm64
   DOCKER_DRIVER: docker-container
   # Notification settings
-  BARK_SERVER_URL: ${{ secrets.BARK_SERVER_URL }}
   BARK_SUCCESS_SOUND: birdsong
   BARK_FAILURE_SOUND: shake
   BARK_ICON: https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png
@@ -121,11 +120,11 @@ jobs:
         with:
           status: ${{ needs.build-and-push.result }}
           on_status: success, failure, cancelled
+          bark_server_url: ${{ secrets.BARK_SERVER_URL }}
+          device_key: ${{ secrets.BARK_DEVICE_KEY }}
           title: "${{ needs.build-and-push.result == 'success' && '🚀 Pipeline Success' || '❌ Pipeline Failed' }}"
           body: "${{ needs.build-and-push.result == 'success' && (github.event_name == 'workflow_dispatch' && inputs.service != 'all' && format('✅ the {0} image built successfully!', inputs.service) || '✅ backend and frontend images built successfully!') || format('💥 Build failed: {0}', needs.build-and-push.result) }}"
-          device_key: ${{ secrets.BARK_DEVICE_KEY }}
           level: active
           sound: ${{ needs.build-and-push.result == 'success' && env.BARK_SUCCESS_SOUND || env.BARK_FAILURE_SOUND }}
           icon: ${{ env.BARK_ICON }}
           group: ${{ env.BARK_GROUP }}
-          bark_server_url: ${{ env.BARK_SERVER_URL }}
