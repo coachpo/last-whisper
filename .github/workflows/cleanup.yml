@@ -1,22 +1,45 @@
-name: Scheduled Cleanup Workflow Runs
+name: Cleanup Workflows
 
 on:
   schedule:
-    # Run every day at 3:00 AM UTC
-    - cron: '0 3 * * *'
+    # Run every 2 hours
+    - cron: '0 */2 * * *'
   workflow_dispatch:
 
+env:
+  PROJECT_PREFIX: last-whisper
+
 permissions:
+  contents: read
   actions: write
+  packages: write
 
 jobs:
   cleanup-workflow-runs:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
         with:
           retain_days: 0
           keep_minimum_runs: 3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup-untagged:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        service: [ backend, frontend ]
+    steps:
+      - name: Delete UNTAGGED versions for ${{ matrix.service }}
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: ${{ github.repository_owner }}
+          package-type: container
+          package-name: ${{ env.PROJECT_PREFIX }}/${{ matrix.service }}
+          delete-only-untagged-versions: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
