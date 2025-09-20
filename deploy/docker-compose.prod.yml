@@ -17,7 +17,7 @@ services:
 
   # Backend API service - using GitHub Container Registry
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY:-coachpo/last-whisper}/last-whisper-backend:latest
+    image: ghcr.io/${GITHUB_REPOSITORY:-coachpo/last-whisper}/backend:latest
     container_name: last-whisper-backend
     expose:
       - "8000"
@@ -33,7 +33,7 @@ services:
 
   # Frontend service - using GitHub Container Registry
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY:-coachpo/last-whisper}/last-whisper-frontend:latest
+    image: ghcr.io/${GITHUB_REPOSITORY:-coachpo/last-whisper}/frontend:latest
     container_name: last-whisper-frontend
     expose:
       - "3000"

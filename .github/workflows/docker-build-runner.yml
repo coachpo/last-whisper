@@ -21,8 +21,8 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_BACKEND: ${{ github.repository }}/last-whisper-backend
-  IMAGE_NAME_FRONTEND: ${{ github.repository }}/last-whisper-frontend
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
   # Service and directory names
   BACKEND_SERVICE: backend
   FRONTEND_SERVICE: frontend
@@ -136,7 +136,7 @@ jobs:
         with:
           owner: ${{ github.repository_owner }}
           package-type: container
-          package-name: ${{ env.PROJECT_PREFIX }}/${{ env.PROJECT_PREFIX }}-${{ matrix.service }}
+          package-name: ${{ env.PROJECT_PREFIX }}/${{ matrix.service }}
           delete-only-untagged-versions: true
 
   notify-completion:
