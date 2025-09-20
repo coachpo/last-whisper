@@ -154,29 +154,21 @@ jobs:
           else
             TARGET_MSG="backend and frontend images"
           fi
-          
-          if [ "$BUILD_STATUS" == "success" ] && { [ "$CLEANUP_STATUS" == "success" ] || [ "$CLEANUP_STATUS" == "skipped" ]; }; then
-            curl -X POST "${{ env.BARK_SERVER_URL }}/🚀%20Pipeline%20Success/✅%20${TARGET_MSG}%20built%20successfully!%20Cleanup%20completed." \
-              -H "Content-Type: application/json" \
-              -d '{
-                "sound": "${{ env.BARK_SUCCESS_SOUND }}",
-                "icon": "${{ env.BARK_ICON }}",
-                "group": "${{ env.BARK_GROUP }}"
-              }'
-          elif [ "$BUILD_STATUS" == "success" ] && [ "$CLEANUP_STATUS" != "success" ]; then
-            curl -X POST "${{ env.BARK_SERVER_URL }}/⚠️%20Pipeline%20Partial%20Success/✅%20Images%20built%20successfully%20but%20cleanup%20failed:%20$CLEANUP_STATUS" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "sound": "${{ env.BARK_FAILURE_SOUND }}",
-                "icon": "${{ env.BARK_ICON }}",
-                "group": "${{ env.BARK_GROUP }}"
-              }'
+
+          if [ "$BUILD_STATUS" = "success" ] && { [ "$CLEANUP_STATUS" = "success" ] || [ "$CLEANUP_STATUS" = "skipped" ]; }; then
+            TITLE="🚀 Pipeline Success"
+            BODY="✅ ${TARGET_MSG} built successfully! Cleanup completed."
+            SOUND="${{ env.BARK_SUCCESS_SOUND }}"
+          elif [ "$BUILD_STATUS" = "success" ] && [ "$CLEANUP_STATUS" != "success" ]; then
+            TITLE="⚠️ Pipeline Partial Success"
+            BODY="✅ Images built successfully but cleanup failed: $CLEANUP_STATUS"
+            SOUND="${{ env.BARK_FAILURE_SOUND }}"
           else
-            curl -X POST "${{ env.BARK_SERVER_URL }}/❌%20Pipeline%20Failed/💥%20Build%20failed:%20$BUILD_STATUS%20|%20Cleanup:%20$CLEANUP_STATUS" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "sound": "${{ env.BARK_FAILURE_SOUND }}",
-                "icon": "${{ env.BARK_ICON }}",
-                "group": "${{ env.BARK_GROUP }}"
-              }'
+            TITLE="❌ Pipeline Failed"
+            BODY="💥 Build failed: $BUILD_STATUS | Cleanup: $CLEANUP_STATUS"
+            SOUND="${{ env.BARK_FAILURE_SOUND }}"
           fi
+
+          curl -X POST "${{ env.BARK_SERVER_URL }}/push" \
+            -H "Content-Type: application/json" \
+            -d "{\"title\":\"$TITLE\",\"body\":\"$BODY\",\"sound\":\"$SOUND\",\"icon\":\"${{ env.BARK_ICON }}\",\"group\":\"${{ env.BARK_GROUP }}\"}"
