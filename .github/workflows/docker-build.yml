@@ -37,7 +37,7 @@ env:
   BARK_ICON: https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png
   BARK_GROUP: LastWhisper
   # Frontend-specific environment variables from repository variables
-  NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+  NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   NEXT_PUBLIC_DEBUG_LOGGING: ${{ vars.NEXT_PUBLIC_DEBUG_LOGGING }}
   NODE_ENV: ${{ vars.NODE_ENV }}
   HOSTNAME: ${{ vars.HOSTNAME }}
