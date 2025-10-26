@@ -51,14 +51,6 @@ fi
 
 print_status "Deploying Last Whisper with repository: $GITHUB_REPOSITORY"
 
-# Login to GitHub Container Registry (required for private repos)
-if [ "$GITHUB_TOKEN" ]; then
-    print_status "Logging in to GitHub Container Registry..."
-    echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin
-else
-    print_warning "GITHUB_TOKEN not set. This may cause issues with private repositories."
-fi
-
 # Pull latest images
 print_status "Pulling latest images..."
 docker compose -f docker-compose.prod.yml pull
