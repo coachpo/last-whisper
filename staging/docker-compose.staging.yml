@@ -2,7 +2,6 @@ services:
   # Caddy reverse proxy
   caddy:
     image: caddy:2-alpine
-    container_name: last-whisper-caddy
     ports:
       - "8008:8008"
     volumes:
@@ -20,7 +19,6 @@ services:
     build:
       context: ../last-whisper-backend
       dockerfile: Dockerfile
-    container_name: last-whisper-backend-dev
     expose:
       - "8000"
     environment:
@@ -43,7 +41,6 @@ services:
         - NODE_ENV=production
         - PORT=3000
         - HOSTNAME=0.0.0.0
-    container_name: last-whisper-frontend-dev
     expose:
       - "3000"
     depends_on:

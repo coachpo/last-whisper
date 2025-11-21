@@ -3,7 +3,11 @@
 # Last Whisper Smoke Testing Script
 # This script builds Docker images and runs comprehensive smoke tests
 
-set -e  # Exit on any error
+set -euo pipefail  # Exit on error, unset var, or failed pipe
+
+SCRIPT_DIR=$(cd -- "$(dirname "$0")" && pwd)
+
+cd "$SCRIPT_DIR"
 
 # Colors for output
 RED='\033[0;31m'
@@ -13,10 +17,13 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-COMPOSE_FILE="docker-compose.staging.yml"
+COMPOSE_FILE="$SCRIPT_DIR/docker-compose.staging.yml"
 PROJECT_NAME="last-whisper-staging"
-TIMEOUT=30
-MAX_RETRIES=3
+TIMEOUT=${TIMEOUT:-60}
+MAX_RETRIES=${MAX_RETRIES:-3}
+KEEP_STACK=${KEEP_STACK:-0}
+DOCKER_PRUNE=${DOCKER_PRUNE:-0}
+WAIT_INTERVAL=5
 
 # Logging function
 log() {
@@ -37,14 +44,21 @@ warning() {
 
 # Cleanup function
 cleanup() {
+    if [ "$KEEP_STACK" = "1" ]; then
+        log "KEEP_STACK=1 set; skipping cleanup so you can inspect containers."
+        return
+    fi
+
     log "Cleaning up containers and networks..."
-    docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down --remove-orphans 2>/dev/null || true
+    docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" down --remove-orphans 2>/dev/null || true
     
     log "Removing built images..."
-    docker rmi last-whisper-staging-backend last-whisper-staging-frontend 2>/dev/null || true
+    docker rmi "$PROJECT_NAME-backend" "$PROJECT_NAME-frontend" 2>/dev/null || true
     
-    log "Cleaning up Docker system..."
-    docker system prune -f 2>/dev/null || true
+    if [ "$DOCKER_PRUNE" = "1" ]; then
+        log "Pruning dangling Docker resources (DOCKER_PRUNE=1)..."
+        docker system prune -f 2>/dev/null || true
+    fi
 }
 
 # Trap to ensure cleanup on script exit
@@ -76,7 +90,7 @@ check_prerequisites() {
 build_images() {
     log "Building Docker images..."
     
-    if docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build; then
+    if docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" build; then
         success "Images built successfully"
     else
         error "Failed to build images"
@@ -88,16 +102,57 @@ build_images() {
 start_services() {
     log "Starting services..."
     
-    if docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up -d; then
+    if docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" up -d; then
         success "Services started successfully"
     else
         error "Failed to start services"
         exit 1
     fi
-    
-    # Wait for services to be ready
-    log "Waiting for services to be ready..."
-    sleep 10
+}
+
+# Wait for services to report ready
+wait_for_ready() {
+    log "Waiting for services to be ready (timeout: ${TIMEOUT}s)..."
+    local elapsed=0
+    while [ "$elapsed" -lt "$TIMEOUT" ]; do
+        local ps_json
+        if command -v python3 >/dev/null 2>&1 && ps_json=$(docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps --format json 2>/dev/null); then
+            python3 - "$ps_json" <<'PY'
+import json, sys
+data = json.loads(sys.argv[1])
+for svc in data:
+    state = (svc.get("State") or "").lower()
+    if state != "running":
+        sys.exit(1)
+sys.exit(0)
+PY
+            if [ $? -ne 0 ]; then
+                sleep "$WAIT_INTERVAL"
+                elapsed=$((elapsed + WAIT_INTERVAL))
+                continue
+            fi
+        else
+            # Fallback if json format unsupported or python unavailable
+            if ! docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps | grep -q "Up"; then
+                sleep "$WAIT_INTERVAL"
+                elapsed=$((elapsed + WAIT_INTERVAL))
+                continue
+            fi
+        fi
+
+        if curl -f -s http://localhost:8008/apis/health >/dev/null 2>&1 && \
+           curl -f -s http://localhost:8008 >/dev/null 2>&1; then
+            success "Services are responding"
+            return 0
+        fi
+
+        warning "Services not ready yet, retrying... (${elapsed}/${TIMEOUT}s)"
+        sleep "$WAIT_INTERVAL"
+        elapsed=$((elapsed + WAIT_INTERVAL))
+    done
+
+    error "Services did not become ready within ${TIMEOUT}s"
+    return 1
 }
 
 # Check service health
@@ -109,7 +164,7 @@ check_service_health() {
     local failed_services=()
     
     for service in "${expected_services[@]}"; do
-        if docker compose -f $COMPOSE_FILE -p $PROJECT_NAME ps "$service" | grep -q "Up"; then
+        if docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps "$service" | grep -q "Up"; then
             success "Service $service is running"
         else
             error "Service $service is not running"
@@ -121,7 +176,7 @@ check_service_health() {
         success "All containers are running"
     else
         error "Some containers are not running: ${failed_services[*]}"
-        docker compose -f $COMPOSE_FILE -p $PROJECT_NAME ps
+        docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps
         exit 1
     fi
 }
@@ -191,7 +246,8 @@ test_api_endpoints() {
     if [ ${#failed_endpoints[@]} -eq 0 ]; then
         success "All API endpoints are working"
     else
-        warning "Some endpoints failed: ${failed_endpoints[*]}"
+        error "Some endpoints failed: ${failed_endpoints[*]}"
+        return 1
     fi
 }
 
@@ -243,8 +299,13 @@ performance_test() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    local containers=$(docker compose -f $COMPOSE_FILE -p $PROJECT_NAME ps -q)
-    
+    local containers=$(docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps -q)
+
+    if [ -z "$containers" ]; then
+        warning "No containers found for project $PROJECT_NAME"
+        return
+    fi
+
     echo "Container Resource Usage:"
     docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}" $containers
     
@@ -255,11 +316,16 @@ check_resource_usage() {
 run_smoke_test() {
     log "🚀 Starting Last Whisper Smoke Test"
     log "=================================="
+    log "Note: stack will be cleaned up on exit (set KEEP_STACK=1 to keep it running)."
     
     # Run all test phases
     check_prerequisites
     build_images
+    # Ensure keys directory exists for mounted credentials
+    mkdir -p "$SCRIPT_DIR/keys"
+
     start_services
+    wait_for_ready
     check_service_health
     test_backend_api
     test_frontend
@@ -270,12 +336,14 @@ run_smoke_test() {
     
     log "=================================="
     success "🎉 Smoke test completed successfully!"
-    log "Services are running on:"
-    log "  - Frontend: http://localhost:8008"
-    log "  - Backend API: http://localhost:8008/apis"
-    log ""
-    log "To stop services, run:"
-    log "  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down"
+    if [ "$KEEP_STACK" = "1" ]; then
+        log "Services kept running because KEEP_STACK=1"
+        log "  - Frontend: http://localhost:8008"
+        log "  - Backend API: http://localhost:8008/apis"
+        log "To stop services manually: docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down"
+    else
+        log "Services will be stopped during cleanup"
+    fi
 }
 
 # Check if bc is available for floating point math
