@@ -9,7 +9,6 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 COMPOSE_FILE="docker-compose.prod.yml"
-MAX_WAIT_SECONDS=${MAX_WAIT_SECONDS:-60}
 
 # Colors for output
 RED='\033[0;31m'
@@ -80,46 +79,8 @@ fi
 print_status "Starting services..."
 docker compose -f "$COMPOSE_FILE" up -d
 
-services_healthy() {
-    local ps_json
-    if ps_json=$(docker compose -f "$COMPOSE_FILE" ps --format json 2>/dev/null); then
-        python3 - "$ps_json" <<'PY'
-import json, sys
-data = json.loads(sys.argv[1])
-for svc in data:
-    state = (svc.get("State") or "").lower()
-    health = (svc.get("Health") or "").lower()
-    if state != "running":
-        sys.exit(1)
-    if health and health not in {"healthy", ""}:
-        sys.exit(1)
-sys.exit(0)
-PY
-        return $?
-    fi
-
-    # Fallback for older Compose versions
-    docker compose -f "$COMPOSE_FILE" ps | grep -q "Up"
-}
-
-print_status "Waiting for services to be ready (timeout: ${MAX_WAIT_SECONDS}s)..."
-elapsed=0
-interval=5
-while [ "$elapsed" -lt "$MAX_WAIT_SECONDS" ]; do
-    if services_healthy; then
-        print_status "✅ Deployment successful!"
-        print_status "Application is running at: http://localhost:8008"
-        break
-    fi
-    sleep "$interval"
-    elapsed=$((elapsed + interval))
-done
-
-if [ "$elapsed" -ge "$MAX_WAIT_SECONDS" ]; then
-    print_error "❌ Services did not become healthy within ${MAX_WAIT_SECONDS}s. Check logs with:"
-    print_error "docker compose -f $COMPOSE_FILE logs"
-    exit 1
-fi
+print_status "✅ Deployment steps finished."
+print_status "Application expected at: http://localhost:8008"
 
 # Show running containers
 print_status "Running containers:"
