@@ -22,6 +22,8 @@ PROJECT_NAME="last-whisper-staging"
 MAX_RETRIES=${MAX_RETRIES:-3}
 KEEP_STACK=${KEEP_STACK:-0}
 DOCKER_PRUNE=${DOCKER_PRUNE:-0}
+API_KEY=${API_KEY:-local-dev-key}
+API_KEY_HEADER="X-API-Key: $API_KEY"
 
 # Logging function
 log() {
@@ -140,7 +142,7 @@ test_backend_api() {
     
     local retries=0
     while [ $retries -lt $MAX_RETRIES ]; do
-        if curl -f -s http://localhost:8008/apis/health > /dev/null 2>&1; then
+        if curl -f -s -H "$API_KEY_HEADER" http://localhost:8008/apis/health > /dev/null 2>&1; then
             success "Backend API is responding"
             return 0
         fi
@@ -160,7 +162,7 @@ test_frontend() {
     
     local retries=0
     while [ $retries -lt $MAX_RETRIES ]; do
-        if curl -f -s http://localhost:8008 > /dev/null 2>&1; then
+        if curl -f -s -H "$API_KEY_HEADER" http://localhost:8008 > /dev/null 2>&1; then
             success "Frontend is responding"
             return 0
         fi
@@ -188,7 +190,7 @@ test_api_endpoints() {
     local failed_endpoints=()
     
     for endpoint in "${endpoints[@]}"; do
-        if curl -f -s "http://localhost:8008$endpoint" > /dev/null 2>&1; then
+        if curl -f -s -H "$API_KEY_HEADER" "http://localhost:8008$endpoint" > /dev/null 2>&1; then
             success "Endpoint $endpoint is working"
         else
             error "Endpoint $endpoint failed"
@@ -234,7 +236,7 @@ performance_test() {
     local start_time=$(date +%s)
     
     # Test API response time
-    local response_time=$(curl -w "%{time_total}" -o /dev/null -s http://localhost:8008/apis/health)
+    local response_time=$(curl -w "%{time_total}" -o /dev/null -s -H "$API_KEY_HEADER" http://localhost:8008/apis/health)
     
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
@@ -304,7 +306,7 @@ if ! command -v bc &> /dev/null; then
     performance_test() {
         log "Running basic performance test..."
         local start_time=$(date +%s)
-        curl -s http://localhost:8008/apis/health > /dev/null
+        curl -s -H "$API_KEY_HEADER" http://localhost:8008/apis/health > /dev/null
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
         success "Performance test completed in ${duration}s"
