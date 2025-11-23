@@ -76,7 +76,6 @@ jobs:
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -88,7 +87,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}
           file: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}/Dockerfile
-          push: ${{ github.event_name == 'workflow_dispatch' }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:latest
             ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:v${{ github.run_number }}
