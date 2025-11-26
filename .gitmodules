@@ -1,6 +1,8 @@
 [submodule "last-whisper-backend"]
 	path = last-whisper-backend
 	url = https://github.com/coachpo/last-whisper-backend.git
+	branch = main
 [submodule "last-whisper-frontend"]
 	path = last-whisper-frontend
 	url = https://github.com/coachpo/last-whisper-frontend.git
+	branch = main
