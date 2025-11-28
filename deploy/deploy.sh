@@ -36,20 +36,6 @@ require_cmd() {
     fi
 }
 
-# Check if .env file exists
-if [ ! -f .env ]; then
-    print_warning ".env file not found. Creating from template..."
-    if [ -f env.template ]; then
-        cp env.template .env
-        print_status "Created .env file from env.template"
-        print_warning "Please edit .env file with your configuration before running again."
-        exit 1
-    else
-        print_error "env.template file not found. Please create a .env file manually."
-        exit 1
-    fi
-fi
-
 require_cmd docker
 docker compose version >/dev/null 2>&1 || {
     print_error "Docker Compose plugin is not available. Please install Docker Desktop or the compose plugin."
