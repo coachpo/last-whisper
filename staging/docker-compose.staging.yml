@@ -13,6 +13,8 @@ services:
       - frontend
       - backend
     restart: unless-stopped
+    networks:
+      - last_whisper_staging_net
 
   # Backend API service - development build
   backend:
@@ -29,6 +31,8 @@ services:
       - database_data:/app/data
       - ./keys:/app/keys:ro
     restart: unless-stopped
+    networks:
+      - last_whisper_staging_net
 
   # Frontend service - development build
   frontend:
@@ -46,6 +50,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - last_whisper_staging_net
 
 volumes:
   database_data:
@@ -58,3 +64,8 @@ volumes:
     driver: local
   caddy_logs:
     driver: local
+
+networks:
+  last_whisper_staging_net:
+    name: last_whisper_staging_net
+    driver: bridge

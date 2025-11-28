@@ -14,6 +14,8 @@ services:
       - frontend
       - backend
     restart: unless-stopped
+    networks:
+      - last_whisper_prod_net
 
   # Backend API service - using GitHub Container Registry
   backend:
@@ -30,6 +32,8 @@ services:
       - database_data:/app/data
       - ./keys:/app/keys:ro
     restart: unless-stopped
+    networks:
+      - last_whisper_prod_net
 
   # Frontend service - using GitHub Container Registry
   frontend:
@@ -40,6 +44,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - last_whisper_prod_net
 
 volumes:
   database_data:
@@ -52,3 +58,8 @@ volumes:
     driver: local
   caddy_logs:
     driver: local
+
+networks:
+  last_whisper_prod_net:
+    name: last_whisper_prod_net
+    driver: bridge
