@@ -7,12 +7,11 @@ Fast, modern dictation training with high-quality text-to-speech, attempt scorin
 - Multi-provider TTS (Google Cloud today) with cached audio and locale-aware settings.
 - Dictation practice with WER-based scoring, history, tags, and difficulty filters.
 - Responsive PWA frontend built with shadcn/ui, Tailwind CSS, and TanStack Query.
-- Production-ready containers (GHCR) plus staging and local development paths.
+- Containerized staging and local development paths.
 
 ## Monorepo Layout
 - `last-whisper-backend/` – FastAPI service (`run_api.py`, Python 3.11+, optional `last-whisper-api` entrypoint). See its README for details.
 - `last-whisper-frontend/` – Next.js 16 app using pnpm 10.23.0. See its README for UI and API client notes.
-- `deploy/` – Production compose stack using GHCR images and Caddy reverse proxy.
 - `staging/` – Dev/staging compose stack that builds images from the local backend/frontend.
 - `.github/workflows/` – CI for image builds and cleanup.
 - `LICENSE` – MIT.
@@ -33,8 +32,6 @@ Endpoints (containers expose):
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - Caddy proxy: http://localhost:8008
-
-To use prebuilt GHCR images instead, point to `deploy/docker-compose.prod.yml` (optional `deploy/env.template` for GHCR auth).
 
 ## Local Development
 ### Backend (FastAPI)
@@ -63,7 +60,6 @@ pnpm dev   # http://localhost:3000
 
 ## Deployment
 - **Staging/dev:** `docker compose -f staging/docker-compose.staging.yml up --build`
-- **Production:** `docker compose -f deploy/docker-compose.prod.yml --env-file deploy/env.template up -d` (provide GHCR creds if images are private; mount `deploy/keys` for Google credentials)
 - Reverse proxy is handled by Caddy (port 8008 by default).
 
 ## Contributing

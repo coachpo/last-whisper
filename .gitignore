@@ -39,6 +39,7 @@ web_modules/
 .env.production.local
 .env.local
 .env.*
+!.env.example
 .cache
 .parcel-cache
 .next
@@ -115,6 +116,7 @@ next-env.d.ts
 # *.iml
 # *.ipr
 keys/
+secrets/
 # CMake
 cmake-build-*/
 
