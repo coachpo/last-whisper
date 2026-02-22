@@ -40,8 +40,7 @@ Docs: http://localhost:8000/docs when running in development.
 cd last-whisper-frontend
 pnpm install
 cp env.example .env.local
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000" >> .env.local   # adjust if different
-pnpm dev   # http://localhost:3000
+pnpm dev   # http://localhost:3000 (API calls proxy to localhost:8000 via Next.js rewrites)
 ```
 
 ## Docker

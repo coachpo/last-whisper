@@ -54,7 +54,7 @@ Staging/deploy compose files and Caddy config live outside this repo.
 ## Anti-Patterns
 
 - Never commit credentials or `.env` files — `keys/` and secrets are gitignored
-- Never hardcode API URLs — use `NEXT_PUBLIC_API_URL` / pydantic-settings
+- Never hardcode API URLs — frontend uses relative URLs (reverse proxy / Next.js rewrites handle routing); backend uses pydantic-settings
 - Never suppress types with `as any` or `@ts-ignore` in frontend
 - Backend: Don't bypass `api/dependencies.py` for service wiring — use `@lru_cache` singletons
 - Frontend: Don't fetch directly — use TanStack Query hooks via `lib/api/modules/`
