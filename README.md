@@ -7,12 +7,11 @@ Fast, modern dictation training with high-quality text-to-speech, attempt scorin
 - Multi-provider TTS (Google Cloud today) with cached audio and locale-aware settings.
 - Dictation practice with WER-based scoring, history, tags, and difficulty filters.
 - Responsive PWA frontend built with shadcn/ui, Tailwind CSS, and TanStack Query.
-- Containerized staging and local development paths.
+- Local development paths for backend and frontend.
 
 ## Monorepo Layout
 - `last-whisper-backend/` – FastAPI service (`run_api.py`, Python 3.11+, optional `last-whisper-api` entrypoint). See its README for details.
 - `last-whisper-frontend/` – Next.js 16 app using pnpm 10.23.0. See its README for UI and API client notes.
-- `staging/` – Dev/staging compose stack that builds images from the local backend/frontend.
 - `.github/workflows/` – CI for image builds and cleanup.
 - `LICENSE` – MIT.
 
@@ -21,17 +20,6 @@ Fast, modern dictation training with high-quality text-to-speech, attempt scorin
 - Python 3.11+ (backend development).
 - Node.js 18+ with `pnpm` (frontend development) – package manager pinned to `pnpm@10.23.0`.
 - Google Cloud Text-to-Speech credentials JSON placed at `keys/google-credentials.json` (mounted by compose files).
-
-## Run with Docker (staging stack)
-This builds images from your local code and runs Caddy in front of both services.
-```bash
-# From repo root
-docker compose -f staging/docker-compose.staging.yml up --build
-```
-Endpoints (containers expose):
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Caddy proxy: http://localhost:8008
 
 ## Local Development
 ### Backend (FastAPI)
@@ -57,10 +45,6 @@ pnpm dev   # http://localhost:3000
 ## Testing & Quality
 - Backend: `pytest`, `pytest --cov=app`, `ruff check app tests`, `black app tests`
 - Frontend: `pnpm test:unit`, `pnpm test:e2e` (Playwright), `pnpm lint`, `pnpm type-check`
-
-## Deployment
-- **Staging/dev:** `docker compose -f staging/docker-compose.staging.yml up --build`
-- Reverse proxy is handled by Caddy (port 8008 by default).
 
 ## Contributing
 - Follow backend/`AGENTS.md` conventions and subproject READMEs.
