@@ -4,14 +4,14 @@
 
 ## Overview
 
-Dictation training monorepo: FastAPI backend (TTS, WER scoring, analytics) + Next.js 16 frontend (PWA, cached audio, dashboards). Session-less workflow — no user auth.
+Dictation training monorepo: FastAPI backend (TTS, WER scoring, analytics) + Vite + React 19 frontend (SPA, cached audio, dashboards). Session-less workflow — no user auth.
 
 ## Structure
 
 ```
 last-whisper/
 ├── last-whisper-backend/   # FastAPI + SQLAlchemy + Google Cloud TTS/Translate
-├── last-whisper-frontend/  # Next.js 16 (React 19) + shadcn/ui + TanStack Query
+├── last-whisper-frontend/  # Vite 6, React 19, React Router 7, shadcn/ui, TanStack Query
 ├── .github/workflows/      # CI: Docker image builds (ARM64) + cleanup
 └── LICENSE                  # MIT
 ```
@@ -23,7 +23,7 @@ Staging/deploy compose files and Caddy config live outside this repo.
 | Task | Location | Notes |
 |------|----------|-------|
 | Add API endpoint | `backend/app/api/routes/` | Mirror in `backend/app/services/` |
-| Add frontend page | `frontend/src/app/{route}/page.tsx` | App Router, add component in `src/components/{feature}/` |
+| Add frontend page | `frontend/src/router.tsx + src/components/{feature}/` | Add Route in router.tsx, component in `src/components/{feature}/` |
 | Add API client call | `frontend/src/lib/api/modules/` | One module per backend domain |
 | Change TTS provider | `backend/app/tts_engine/` | Extend `BaseTTSEngine` abstract class |
 | Change translation provider | `backend/app/translation/` | Extend `BaseTranslationProvider` |
@@ -33,15 +33,15 @@ Staging/deploy compose files and Caddy config live outside this repo.
 | Add E2E test | `frontend/tests/e2e/` | `TC_###_scenario.test.ts` naming |
 | Add backend test | `backend/tests/` | Mirror `app/` structure, use conftest fixtures |
 | Change CI | `.github/workflows/builder.yml` | Matrix build, ARM64, GHCR push |
-| Environment config | Backend: `app/core/config.py` / Frontend: `env.example` | pydantic-settings / Next.js env |
+| Environment config | Backend: `app/core/config.py` / Frontend: `env.example` | pydantic-settings / Vite env |
 
 ## Tech Stack
 
 | Layer | Stack |
 |-------|-------|
 | Backend | Python 3.11+, FastAPI, SQLAlchemy 2.x, SQLite, Google Cloud TTS/Translate, jiwer, pydantic-settings |
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest |
-| Infra | Docker (ARM64), GitHub Actions, GHCR, Caddy (external), pnpm 10.23.0 |
+| Frontend | Vite 6, React 19, React Router 7, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, Playwright, Vitest |
+| Infra | Docker (ARM64), GitHub Actions, GHCR, Caddy (external), pnpm 10.30.1 |
 
 ## Conventions
 
@@ -54,7 +54,7 @@ Staging/deploy compose files and Caddy config live outside this repo.
 ## Anti-Patterns
 
 - Never commit credentials or `.env` files — `keys/` and secrets are gitignored
-- Never hardcode API URLs — frontend uses relative URLs (reverse proxy / Next.js rewrites handle routing); backend uses pydantic-settings
+- Never hardcode API URLs — frontend uses relative URLs (reverse proxy / Vite proxy handle routing); backend uses pydantic-settings
 - Never suppress types with `as any` or `@ts-ignore` in frontend
 - Backend: Don't bypass `api/dependencies.py` for service wiring — use `@lru_cache` singletons
 - Frontend: Don't fetch directly — use TanStack Query hooks via `lib/api/modules/`
@@ -73,9 +73,9 @@ black app tests                            # format
 
 # Frontend
 cd last-whisper-frontend
-pnpm install                               # pnpm 10.23.0
+pnpm install                               # pnpm 10.30.1
 pnpm dev                                   # dev server :3000
-pnpm build                                 # production build
+pnpm build                                 # tsc + vite build
 pnpm lint                                  # ESLint
 pnpm type-check                            # tsc --noEmit
 pnpm test:unit                             # Vitest
