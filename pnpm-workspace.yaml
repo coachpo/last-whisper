@@ -1,0 +1,7 @@
+packages:
+  - last-whisper-frontend
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver
