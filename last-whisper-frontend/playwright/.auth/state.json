@@ -1,0 +1,22 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "lw:practice:item-list-visible",
+          "value": "false"
+        },
+        {
+          "name": "lw:practice:filters-visible",
+          "value": "false"
+        },
+        {
+          "name": "lw:practice:focus-mode",
+          "value": "false"
+        }
+      ]
+    }
+  ]
+}
