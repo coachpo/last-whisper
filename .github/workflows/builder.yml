@@ -79,6 +79,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Read service version
+        id: service_version
+        run: |
+          case "${{ matrix.service }}" in
+            backend) version_file="last-whisper-backend/VERSION" ;;
+            frontend) version_file="last-whisper-frontend/VERSION" ;;
+            *)
+              echo "Unsupported service: ${{ matrix.service }}" >&2
+              exit 1
+              ;;
+          esac
+
+          version="$(tr -d '\r\n' < "$version_file")"
+          if [ -z "$version" ]; then
+            echo "Version file $version_file is empty" >&2
+            exit 1
+          fi
+
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
       - name: Build and push backend Docker image (arm64)
         if: matrix.service == env.BACKEND_SERVICE
         uses: docker/build-push-action@v5
@@ -88,8 +108,8 @@ jobs:
           file: ./last-whisper-backend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:latest
-            ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:v${{ github.run_number }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:v${{ steps.service_version.outputs.value }}
           cache-from: |
             type=gha,scope=${{ matrix.service }}
             type=registry,ref=${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:cache
@@ -112,7 +132,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:v${{ github.run_number }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:v${{ steps.service_version.outputs.value }}
           cache-from: |
             type=gha,scope=${{ matrix.service }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:cache
@@ -146,7 +166,7 @@ jobs:
           bark_server_url: ${{ secrets.BARK_SERVER_URL }}
           device_key: ${{ secrets.BARK_DEVICE_KEY }}
           title: "${{ needs.build-and-push.result == 'success' && format('🚀LastWhisper🚀: Success (Run #{0})', github.run_number) || format('💥LastWhisper💥: Failed (Run #{0})', github.run_number) }}"
-          body: "${{ needs.build-and-push.result == 'success' && (github.event_name == 'workflow_dispatch' && inputs.service != 'all' && format('Run #{0}: ✅ the {1} image built successfully (tag: v{0}).', github.run_number, inputs.service) || format('Run #{0}: ✅ backend and frontend images built successfully (tag: v{0}).', github.run_number)) || format('Run #{0}: 💥 Build failed: {1}', github.run_number, needs.build-and-push.result) }}"
+          body: "${{ needs.build-and-push.result == 'success' && (github.event_name == 'workflow_dispatch' && inputs.service != 'all' && format('Run #{0}: ✅ the {1} image built successfully (tags: latest + v<VERSION file>).', github.run_number, inputs.service) || format('Run #{0}: ✅ backend and frontend images built successfully (tags: latest + v<VERSION file>).', github.run_number)) || format('Run #{0}: 💥 Build failed: {1}', github.run_number, needs.build-and-push.result) }}"
           level: active
           sound: ${{ needs.build-and-push.result == 'success' && env.BARK_SUCCESS_SOUND || env.BARK_FAILURE_SOUND }}
           icon: ${{ env.BARK_ICON }}

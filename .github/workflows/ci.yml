@@ -7,6 +7,48 @@ on:
     branches: [main]
 
 jobs:
+  version-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify VERSION files match package metadata
+        run: |
+          python - <<'PY'
+          import json
+          import pathlib
+          import tomllib
+
+          root = pathlib.Path('.')
+          backend_version = (root / 'last-whisper-backend' / 'VERSION').read_text().strip()
+          frontend_version = (root / 'last-whisper-frontend' / 'VERSION').read_text().strip()
+
+          backend_pyproject = tomllib.loads((root / 'last-whisper-backend' / 'pyproject.toml').read_text())
+          frontend_package = json.loads((root / 'last-whisper-frontend' / 'package.json').read_text())
+
+          expected_backend = backend_pyproject['project']['version']
+          expected_frontend = frontend_package['version']
+
+          if backend_version != expected_backend:
+            raise SystemExit(
+              f"Backend VERSION mismatch: {backend_version} != {expected_backend}"
+            )
+
+          if frontend_version != expected_frontend:
+            raise SystemExit(
+              f"Frontend VERSION mismatch: {frontend_version} != {expected_frontend}"
+            )
+
+          print(f"backend version ok: {backend_version}")
+          print(f"frontend version ok: {frontend_version}")
+          PY
+
   backend-quality:
     runs-on: ubuntu-latest
     defaults:
@@ -34,3 +76,33 @@ jobs:
 
       - name: Run pytest
         run: pytest
+
+  frontend-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: last-whisper-frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: last-whisper-frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run unit tests
+        run: pnpm test:unit
