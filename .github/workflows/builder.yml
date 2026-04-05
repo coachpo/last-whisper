@@ -58,10 +58,9 @@ jobs:
         service: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.service != 'all' && format('["{0}"]', inputs.service) || '["backend","frontend"]') }}
 
     steps:
-      - name: Checkout repository with submodules
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           fetch-depth: 1
 
       - name: Set up QEMU (for arm64 emulation)
@@ -80,12 +79,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image (arm64)
+      - name: Build and push backend Docker image (arm64)
+        if: matrix.service == env.BACKEND_SERVICE
         uses: docker/build-push-action@v5
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          context: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}
-          file: ./${{ env.PROJECT_PREFIX }}-${{ matrix.service }}/Dockerfile
+          context: ./last-whisper-backend
+          file: ./last-whisper-backend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ env.REGISTRY }}/${{ matrix.service == env.BACKEND_SERVICE && env.IMAGE_NAME_BACKEND || env.IMAGE_NAME_FRONTEND }}:latest
@@ -101,12 +101,35 @@ jobs:
           platforms: ${{ env.BUILD_PLATFORM }}
           provenance: false
           sbom: false
+
+      - name: Build and push frontend Docker image (arm64)
+        if: matrix.service == env.FRONTEND_SERVICE
+        uses: docker/build-push-action@v5
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./last-whisper-frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:v${{ github.run_number }}
+          cache-from: |
+            type=gha,scope=${{ matrix.service }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:cache
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:buildcache
+          cache-to: |
+            type=gha,mode=max,scope=${{ matrix.service }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:cache,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:buildcache,mode=max
+          platforms: ${{ env.BUILD_PLATFORM }}
+          provenance: false
+          sbom: false
           build-args: |
-            ${{ matrix.service == env.FRONTEND_SERVICE && format('NEXT_PUBLIC_API_URL={0}
-            NEXT_PUBLIC_DEBUG_LOGGING={1}
-            NODE_ENV={2}
-            PORT={3}
-            HOSTNAME={4}', env.NEXT_PUBLIC_API_URL, env.NEXT_PUBLIC_DEBUG_LOGGING, env.NODE_ENV, env.PORT, env.HOSTNAME) || '' }}
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_DEBUG_LOGGING=${{ env.NEXT_PUBLIC_DEBUG_LOGGING }}
+            NODE_ENV=${{ env.NODE_ENV }}
+            PORT=${{ env.PORT }}
+            HOSTNAME=${{ env.HOSTNAME }}
 
   notify-completion:
     runs-on: ubuntu-latest
