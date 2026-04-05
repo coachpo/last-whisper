@@ -1,0 +1,126 @@
+"""TTS service wrapper."""
+
+from typing import Optional
+
+from app.core.config import settings
+from app.core.exceptions import TTSServiceException
+from app.tts_engine.base import BaseTTSEngine
+
+
+class TTSEngineWrapper:
+    """Wrapper for the TTS service that provides a clean interface."""
+
+    def __init__(self):
+        self._service: Optional[BaseTTSEngine] = None
+        self._is_initialized = False
+
+    def initialize(self):
+        """Initialize the TTS service."""
+        try:
+            _provider = getattr(settings, "tts_provider", "google").lower()
+
+            from app.tts_engine.tts_engine_gcp import TTSEngine
+
+            gcp_config = {}
+            if hasattr(settings, "gcp_voice_name"):
+                gcp_config["voice_name"] = settings.gcp_voice_name
+            if hasattr(settings, "gcp_language_code"):
+                gcp_config["language_code"] = settings.gcp_language_code
+            if hasattr(settings, "gcp_sample_rate_hz"):
+                gcp_config["sample_rate_hz"] = settings.gcp_sample_rate_hz
+            if hasattr(settings, "gcp_speaking_rate"):
+                gcp_config["speaking_rate"] = settings.gcp_speaking_rate
+            if hasattr(settings, "gcp_pitch"):
+                gcp_config["pitch"] = settings.gcp_pitch
+            if hasattr(settings, "gcp_volume_gain_db"):
+                gcp_config["volume_gain_db"] = settings.gcp_volume_gain_db
+            if hasattr(settings, "gcp_use_ssml"):
+                gcp_config["use_ssml"] = settings.gcp_use_ssml
+            if hasattr(settings, "gcp_device"):
+                gcp_config["device"] = settings.gcp_device
+
+            self._service = TTSEngine(**gcp_config)
+            self._service.start_service()
+            self._is_initialized = True
+        except Exception as e:
+            raise TTSServiceException(f"Failed to initialize TTS service: {str(e)}")
+
+    def shutdown(self):
+        """Shutdown the TTS service."""
+        if self._service:
+            try:
+                self._service.stop_service()
+            except Exception:
+                pass  # Ignore shutdown errors
+            finally:
+                self._service = None
+                self._is_initialized = False
+
+    def submit_request(
+        self,
+        text: str,
+        custom_filename: Optional[str] = None,
+        language: str = "fi",
+        task_kind: str = "generate",
+    ) -> Optional[str]:
+        """Submit a TTS request."""
+        if not self._is_initialized or not self._service:
+            raise TTSServiceException("TTS service not initialized")
+
+        try:
+            return self._service.submit_request(
+                text, custom_filename, language, task_kind=task_kind
+            )
+        except Exception as e:
+            raise TTSServiceException(f"Failed to submit TTS request: {str(e)}")
+
+    def get_task_message_queue(self):
+        """Get the task message queue for monitoring."""
+        if not self._is_initialized or not self._service:
+            raise TTSServiceException("TTS service not initialized")
+
+        return self._service.get_task_message_queue()
+
+    def get_queue_size(self):
+        """Get the current queue size."""
+        if not self._is_initialized or not self._service:
+            raise TTSServiceException("TTS service not initialized")
+
+        return self._service.get_queue_size()
+
+    def get_task_message_queue_size(self):
+        """Get the current task message queue size."""
+        if not self._is_initialized or not self._service:
+            raise TTSServiceException("TTS service not initialized")
+
+        return self._service.get_task_message_queue_size()
+
+    def get_device_info(self):
+        """Get device information."""
+        if not self._is_initialized or not self._service:
+            raise TTSServiceException("TTS service not initialized")
+
+        return self._service.get_device_info()
+
+    def switch_device(self, new_device):
+        """Switch device (not applicable for cloud TTS engines)."""
+        if not self._is_initialized or not self._service:
+            raise TTSServiceException("TTS service not initialized")
+
+        # Device switching is a no-op for the Google Cloud TTS backend
+        if hasattr(self._service, "switch_device"):
+            return self._service.switch_device(new_device)
+        else:
+            raise TTSServiceException(
+                "Device switching not supported for this TTS provider"
+            )
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if the service is initialized."""
+        return self._is_initialized
+
+    @property
+    def service(self) -> Optional[BaseTTSEngine]:
+        """Expose the underlying provider implementation."""
+        return self._service

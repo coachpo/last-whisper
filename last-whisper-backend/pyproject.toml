@@ -1,0 +1,104 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "last-whisper-backend"
+version = "1.0.0"
+description = "Last Whisper monorepo backend service for dictation training, cloud TTS, scoring, and a session-less workflow"
+license = {text = "MIT"}
+authors = [
+    {name = "Last Whisper Team"},
+]
+maintainers = [
+    {name = "Last Whisper Team"},
+]
+keywords = [
+    "tts",
+    "text-to-speech",
+    "dictation",
+    "fastapi",
+    "google-cloud",
+    "speech-synthesis",
+    "language-learning",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Framework :: FastAPI",
+]
+requires-python = ">=3.11"
+dependencies = [
+    # Modern Python web framework for building APIs
+    "fastapi~=0.116.1",
+    # Google Cloud Text-to-Speech API client library
+    "google-cloud-texttospeech~=2.33.0",
+    # Google Cloud Translation API client library (v2 used in app.translation.providers.google_provider)
+    "google-cloud-translate~=3.23.0",
+    # Word Error Rate (WER) calculation for dictation scoring
+    "jiwer~=4.0.0",
+    # Pydantic extension for settings management from environment variables
+    "pydantic-settings~=2.10.1",
+    # Modern Python SQL toolkit and Object-Relational Mapping (ORM)
+    "sqlalchemy~=2.0.43",
+    # Unicode normalization for text processing and comparison
+    "unidecode~=1.4.0",
+    # ASGI server for running FastAPI applications in production
+    "uvicorn[standard]~=0.35.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Code formatting and style enforcement
+    "black~=25.1.0",
+    # Fast Python linter and code formatter
+    "ruff~=0.12.11",
+    # Testing framework for Python applications
+    "pytest~=8.4.1",
+    # Additional testing utilities
+    "pytest-asyncio~=0.24.0",
+    "pytest-cov~=6.0.0",
+    # HTTP client required by FastAPI's TestClient
+    "httpx~=0.27.2",
+]
+
+prod = [
+    # Python WSGI HTTP Server for UNIX (production deployment)
+    "gunicorn~=23.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/coachpo/last-whisper"
+Documentation = "https://github.com/coachpo/last-whisper/blob/main/last-whisper-backend/README.md"
+Repository = "https://github.com/coachpo/last-whisper.git"
+Issues = "https://github.com/coachpo/last-whisper/issues"
+Changelog = "https://github.com/coachpo/last-whisper/blob/main/CHANGELOG.md"
+
+[project.scripts]
+last-whisper-api = "run_api:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+
+[tool.coverage.run]
+source = ["app"]
