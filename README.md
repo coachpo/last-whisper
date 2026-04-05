@@ -54,6 +54,11 @@ Each subproject has its own Dockerfile. The backend image builds from `last-whis
 
 Staging/deploy compose files and Caddy reverse proxy config are managed outside this repo.
 
+## Versioning and CI/CD
+- `last-whisper-backend/VERSION` and `last-whisper-frontend/VERSION` hold the current service version tracked by CI/CD. Keep them aligned with `last-whisper-backend/pyproject.toml` and `last-whisper-frontend/package.json`.
+- `.github/workflows/ci.yml` validates that version alignment and runs backend + frontend quality checks on pushes and pull requests targeting `main`.
+- `.github/workflows/builder.yml` builds both service images and, on non-PR runs, publishes `latest` plus the current `v<service-version>` tag from the corresponding `VERSION` file.
+
 ## Testing & Quality
 - Backend: `pytest`, `pytest --cov=app`, `ruff check app tests`, `black app tests`
 - Frontend: `pnpm test:unit` (Vitest), `pnpm test:e2e` (Playwright), `pnpm lint`, `pnpm type-check`
