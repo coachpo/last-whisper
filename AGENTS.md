@@ -12,6 +12,7 @@ Dictation training monorepo: FastAPI backend (TTS, WER scoring, analytics) + Vit
 last-whisper/
 ├── last-whisper-backend/   # FastAPI + SQLAlchemy + Google Cloud TTS/Translate
 ├── last-whisper-frontend/  # Vite 6, React 19, React Router 7, shadcn/ui, TanStack Query
+├── pnpm-workspace.yaml     # Repo-root pnpm workspace config for frontend installs/builds
 ├── .github/workflows/      # CI: Docker image builds (ARM64) + cleanup
 └── LICENSE                  # MIT
 ```
@@ -22,18 +23,18 @@ Staging/deploy compose files and Caddy config live outside this repo.
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add API endpoint | `backend/app/api/routes/` | Mirror in `backend/app/services/` |
-| Add frontend page | `frontend/src/router.tsx + src/components/{feature}/` | Add Route in router.tsx, component in `src/components/{feature}/` |
-| Add API client call | `frontend/src/lib/api/modules/` | One module per backend domain |
-| Change TTS provider | `backend/app/tts_engine/` | Extend `BaseTTSEngine` abstract class |
-| Change translation provider | `backend/app/translation/` | Extend `BaseTranslationProvider` |
-| Add DB model/migration | `backend/app/models/` + `backend/docs/migrations/` | Raw SQL migrations, SQLAlchemy ORM |
-| Modify scoring | `backend/app/services/attempts_service.py` | jiwer WER + manual fallback |
-| Add shadcn component | `frontend/src/components/ui/` | Via `components.json` registry |
-| Add E2E test | `frontend/tests/e2e/` | `TC_###_scenario.test.ts` naming |
-| Add backend test | `backend/tests/` | Mirror `app/` structure, use conftest fixtures |
-| Change CI | `.github/workflows/builder.yml` | Matrix build, ARM64, GHCR push |
-| Environment config | Backend: `app/core/config.py` / Frontend: `env.example` | pydantic-settings / Vite env |
+| Add API endpoint | `last-whisper-backend/app/api/routes/` | Mirror in `last-whisper-backend/app/services/` |
+| Add frontend page | `last-whisper-frontend/src/router.tsx + src/components/{feature}/` | Add Route in router.tsx, component in `last-whisper-frontend/src/components/{feature}/` |
+| Add API client call | `last-whisper-frontend/src/lib/api/modules/` | One module per backend domain |
+| Change TTS provider | `last-whisper-backend/app/tts_engine/` | Extend `BaseTTSEngine` abstract class |
+| Change translation provider | `last-whisper-backend/app/translation/` | Extend `BaseTranslationProvider` |
+| Add DB model/migration | `last-whisper-backend/app/models/` + `last-whisper-backend/docs/migrations/` | Raw SQL migrations, SQLAlchemy ORM |
+| Modify scoring | `last-whisper-backend/app/services/attempts_service.py` | jiwer WER + manual fallback |
+| Add shadcn component | `last-whisper-frontend/src/components/ui/` | Via `components.json` registry |
+| Add E2E test | `last-whisper-frontend/tests/e2e/` | `TC_###_scenario.test.ts` naming |
+| Add backend test | `last-whisper-backend/tests/` | Mirror `app/` structure, use conftest fixtures |
+| Change CI | `.github/workflows/builder.yml` + `.github/workflows/ci.yml` | Root workflows own builds and backend quality checks |
+| Environment config | Backend: `last-whisper-backend/app/core/config.py` / Frontend: `last-whisper-frontend/env.example` | pydantic-settings / Vite env |
 
 ## Tech Stack
 
@@ -49,6 +50,7 @@ Staging/deploy compose files and Caddy config live outside this repo.
 - Backend: Black 88-char, Ruff linting, snake_case modules, PascalCase classes, explicit type hints
 - Frontend: 2-space indent, ESLint flat config, Tailwind utility-first, PascalCase components, `useX` hooks
 - Tests: Backend `test_*.py` mirroring `app/`; Frontend `TC_###_scenario.test.ts`
+- Root `pnpm-workspace.yaml` is authoritative for frontend workspace settings
 - PRs against `main`; CI builds container images on push/PR
 
 ## Anti-Patterns
@@ -84,7 +86,7 @@ pnpm test:e2e                              # Playwright (mocked API)
 
 ## Secrets & Credentials
 
-- Google Cloud TTS/Translate: `keys/google-credentials.json` (mounted in Docker, gitignored)
+- Google Cloud TTS/Translate credentials live at repo-root `keys/google-credentials.json` (when running from `last-whisper-backend/`, use `../keys/google-credentials.json` or an absolute path)
 - Never commit `*-key.*`, `*-credentials.*`, `.env.*` (except `.env.example`)
 
 ## Notes

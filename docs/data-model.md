@@ -9,6 +9,8 @@
 
 ## 1. Entity-Relationship Overview
 
+This schema is implemented by the backend service under `last-whisper-backend/` inside the root monorepo checkout.
+
 ```
 ┌──────────┐       ┌──────────┐       ┌──────────┐
 │   Item   │──1:1──│ ItemTTS  │       │   Tag    │

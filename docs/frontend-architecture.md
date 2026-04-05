@@ -54,6 +54,8 @@ src/
 └── types/                      # TypeScript type definitions
 ```
 
+This application lives in `last-whisper-frontend/` inside the root monorepo. Repo-wide pnpm settings are owned by the root `pnpm-workspace.yaml`, so CI and Docker builds use the repo root as the build context while keeping app commands scoped to `last-whisper-frontend/`.
+
 ---
 
 ## 3. Routing
@@ -248,6 +250,7 @@ These are copy-pasted shadcn/ui components (not imported from a package) — cus
 - React plugin via `@vitejs/plugin-react`
 - Path alias: `@` → `./src`
 - Dev server on port 3000
+- Repo-root `pnpm-workspace.yaml` provides `onlyBuiltDependencies` during workspace installs and image builds
 - Proxy rules: `/v1/*`, `/api/v1/*`, `/metadata`, `/health` → backend (default `http://localhost:8000`)
 - Production build outputs to `dist/` with sourcemaps
 

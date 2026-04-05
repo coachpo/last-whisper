@@ -1,6 +1,6 @@
 # Last Whisper — Documentation
 
-Technical and product documentation for the Last Whisper dictation training application.
+Technical and product documentation for the Last Whisper dictation training application. All docs assume a single monorepo checkout that directly owns `last-whisper-backend/`, `last-whisper-frontend/`, and the repo-root `pnpm-workspace.yaml`.
 
 ---
 

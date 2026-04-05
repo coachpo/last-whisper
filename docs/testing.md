@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-Last Whisper uses a three-layer testing strategy: backend unit/integration tests (pytest), frontend unit tests (Vitest), and frontend end-to-end tests (Playwright). All tests run locally; CI builds container images but does not currently execute tests in the pipeline.
+Last Whisper uses a three-layer testing strategy: backend unit/integration tests (pytest), frontend unit tests (Vitest), and frontend end-to-end tests (Playwright). All tests run locally, and the root CI workflow mirrors the backend quality gates (`ruff`, `black --check`, `pytest`) from `last-whisper-backend/` before container images are built.
 
 ---
 
@@ -199,6 +199,8 @@ E2E_BASE_URL=http://localhost:4173 pnpm test:e2e  # target preview build
 | Black | Backend Python formatting | `black app tests` |
 | ESLint | Frontend TypeScript/React linting | `pnpm lint` |
 | TypeScript | Frontend type checking | `pnpm type-check` |
+
+The root `.github/workflows/ci.yml` workflow runs the backend Ruff, Black, and pytest commands from `last-whisper-backend/`. Frontend lint, type-check, unit tests, and builds remain part of the local verification flow and can be added to root CI separately when desired.
 
 ### 5.2 Pre-Commit Checklist
 

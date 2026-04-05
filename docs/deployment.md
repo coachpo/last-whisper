@@ -30,6 +30,8 @@ All components run as Docker containers on ARM64 infrastructure (Raspberry Pi / 
 | Python (local dev) | 3.11+ |
 | Google Cloud credentials | TTS + Translate APIs enabled |
 
+All commands below assume a single monorepo checkout rooted at `last-whisper/`.
+
 ---
 
 ## 3. Local Development
@@ -44,7 +46,7 @@ pip install -e ".[dev]"
 
 # Configure environment
 cp .env.example .env
-# Edit .env: set GOOGLE_APPLICATION_CREDENTIALS path
+# Edit .env if needed and point GOOGLE_APPLICATION_CREDENTIALS at ../keys/google-credentials.json or an absolute path
 
 # Run
 python run_api.py    # Uvicorn dev server on :8000
@@ -128,8 +130,8 @@ docker run -d \
 **Runtime:** `serve -s dist -l 3000`
 
 ```bash
-cd last-whisper-frontend
-docker build -t last-whisper-frontend .
+# from repo root
+docker build -f last-whisper-frontend/Dockerfile -t last-whisper-frontend .
 docker run -d -p 3000:3000 last-whisper-frontend
 ```
 
@@ -148,7 +150,21 @@ Both images run as non-root users:
 
 ## 5. CI/CD Pipeline
 
-### 5.1 Build Workflow (`.github/workflows/builder.yml`)
+Root workflows are authoritative for the monorepo; there are no nested project-specific GitHub Actions workflows.
+
+### 5.1 Backend Quality Workflow (`.github/workflows/ci.yml`)
+
+**Triggers:**
+- Push to `main` branch
+- Pull request to `main` branch
+
+**Job:**
+1. Checks out the root repository
+2. Sets up Python 3.12
+3. Installs backend dev dependencies from `last-whisper-backend/`
+4. Runs `ruff check app tests`, `black --check app tests`, and `pytest`
+
+### 5.2 Build Workflow (`.github/workflows/builder.yml`)
 
 **Triggers:**
 - Push to `main` branch
@@ -158,12 +174,14 @@ Both images run as non-root users:
 **Jobs:**
 1. Matrix build: `[backend, frontend]` in parallel
 2. Each job:
-   - Checks out code
-   - Sets up QEMU (ARM64 emulation)
-   - Sets up Docker Buildx
-   - Logs into GHCR (`ghcr.io`)
-   - Builds `linux/arm64` image with layer caching
-   - Pushes with tags: `latest` + `v{run_number}`
+    - Checks out code
+    - Sets up QEMU (ARM64 emulation)
+    - Sets up Docker Buildx
+    - Logs into GHCR (`ghcr.io`)
+    - Builds `linux/arm64` image with layer caching
+    - Uses `./last-whisper-backend` as the backend build context
+    - Uses the repo root as the frontend build context so `last-whisper-frontend/Dockerfile` can read `pnpm-workspace.yaml`
+    - Pushes with tags: `latest` + `v{run_number}`
 3. Bark push notification on success/failure
 
 **Image registry:**
@@ -176,7 +194,7 @@ ghcr.io/coachpo/last-whisper-frontend:v{N}
 
 **Platform:** `linux/arm64` only (no x86 builds).
 
-### 5.2 Cleanup Workflow (`.github/workflows/cleanup.yml`)
+### 5.3 Cleanup Workflow (`.github/workflows/cleanup.yml`)
 
 **Schedule:** Daily at 03:00 UTC
 **Actions:**

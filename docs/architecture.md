@@ -9,6 +9,18 @@
 
 Last Whisper is a two-tier web application: a FastAPI backend serving a REST API and a Vite+React single-page application frontend. Both are containerized and deployed behind a Caddy reverse proxy on ARM64 infrastructure.
 
+The source tree is a true monorepo. The root Git repository directly tracks:
+
+```
+last-whisper/
+├── last-whisper-backend/
+├── last-whisper-frontend/
+├── pnpm-workspace.yaml
+└── .github/workflows/
+```
+
+Backend developer commands remain scoped to `last-whisper-backend/`, frontend commands remain scoped to `last-whisper-frontend/`, and root workflows orchestrate CI/CD for the combined repository.
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                      Caddy (Reverse Proxy)              │
