@@ -104,7 +104,7 @@ dist
 *.iml
 out
 output
-audio
+/audio/
 *.wav
 *.db
 gen
